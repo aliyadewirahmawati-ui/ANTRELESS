@@ -1,6 +1,6 @@
 ﻿# Antreless — produk & layanan kampus
 
-Prototipe pre-order dan pengambilan produk serta layanan kampus dengan palet pink, peran admin/pembeli, stok, dan kapasitas antrean lokal.
+Prototipe pre-order dan pengambilan produk serta layanan kampus dengan palet navy, toska, kuning, dan putih, peran admin/pembeli, stok, dan kapasitas antrean lokal.
 
 ## Menjalankan
 
@@ -69,7 +69,7 @@ Reset data demo hari ini memerlukan konfirmasi di dashboard: stok kembali 20, la
 
 ## Last Call: Hemat Ekstra
 
-Area Last Call: Hemat Ekstra tetap terlihat sepanjang hari untuk pembeli, tetapi pemesanan harga promo hanya dibuka setiap hari 15.00 sampai sebelum 17.00 WIB. Layanan Fotokopi & Print Kampus tidak termasuk. Jam mengikuti waktu browser yang dikonversi ke WIB; tidak ada tombol untuk memaksakan jam promo pada aplikasi. Section khusus sebelum daftar menu menampilkan banner pink/magenta dengan aksen oranye lembut, ilustrasi makanan, dan maksimal tiga kartu menu. Di luar jam promo, kartu menjadi pratinjau dengan tombol nonaktif dan countdown menuju pukul 15.00 berikutnya. Pada jam promo, tombol dapat digunakan sesuai stok dan countdown menunjukkan waktu hingga 17.00. Jika belum ada promo aktif, area tetap terlihat dengan pesan bahwa pilihan promo sedang disiapkan. Kartu tersusun horizontal di desktop dan dapat digeser di HP. Menu stok promo tersedia diprioritaskan; promo aktif yang habis tetap menampilkan "Promo habis".
+Area Last Call: Hemat Ekstra tetap terlihat sepanjang hari untuk pembeli, tetapi pemesanan harga promo hanya dibuka setiap hari 15.00 sampai sebelum 17.00 WIB. Layanan Fotokopi & Print Kampus tidak termasuk. Jam mengikuti waktu browser yang dikonversi ke WIB; tidak ada tombol untuk memaksakan jam promo pada aplikasi. Section khusus sebelum daftar menu menampilkan banner navy/toska dengan aksen kuning, ilustrasi makanan, dan maksimal tiga kartu menu. Di luar jam promo, kartu menjadi pratinjau dengan tombol nonaktif dan countdown menuju pukul 15.00 berikutnya. Pada jam promo, tombol dapat digunakan sesuai stok dan countdown menunjukkan waktu hingga 17.00. Jika belum ada promo aktif, area tetap terlihat dengan pesan bahwa pilihan promo sedang disiapkan. Kartu tersusun horizontal di desktop dan dapat digeser di HP. Menu stok promo tersedia diprioritaskan; promo aktif yang habis tetap menampilkan "Promo habis".
 
 Data demo awal:
 
@@ -110,7 +110,7 @@ Pengujian mencakup akun/peran, katalog/filter, lima formulir layanan, tidak ada 
 ## File
 
 - index.html: login, katalog, formulir detail layanan, keranjang, konfirmasi, Pesanan Saya, dashboard dan konfirmasi reset.
-- style.css: palet pink dengan CSS variables dan tampilan desktop/HP.
+- style.css: palet navy (#102C46), toska (#12B99A), kuning (#FFBF32), dan putih (#FFFFFF) dengan CSS variables dan tampilan desktop/HP.
 - app.js: katalog, autentikasi, penyimpanan, stok, slot, layanan, checkout dan antrean.
 - tests/campus-flow.cjs: pengujian integrasi melalui Chrome.
 - assets/menu-illustrations.png: gambar makanan yang dipertahankan.
