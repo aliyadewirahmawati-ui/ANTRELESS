@@ -14,18 +14,20 @@ async function reload(browser){await browser.send('Page.reload');await wait(150)
  const buyer=await tab();assert.deepEqual(buyer.errors,[]);assert.equal(await buyer.run('menuCatalog.length'),50);assert.equal(await buyer.run('slotList.length'),63);
  await register(buyer,'Pembeli Kampus','campus@qa.test');
  assert.equal(await buyer.run('currentUser.role'),'buyer');assert.equal(await buyer.run('menuCount.textContent'),'50');assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),50);
+ assert.deepEqual(await buyer.run('partnerNames'),['Kantin','Fotokopi & Print Kampus']);assert.equal(await buyer.run('partnerCount.textContent'),'2');assert.equal(await buyer.run('document.querySelectorAll(".tenant").length'),2);
+ assert.deepEqual(await buyer.run('Array.from(document.querySelectorAll("[data-tenant-menu-count]"),node=>node.textContent)'),['Lihat 45 menu','Lihat 5 layanan']);
  assert.equal(await buyer.run('document.body.innerText.toLowerCase().includes("tenant")'),false);
  assert.deepEqual(await buyer.run('slotList.filter((_,i)=>i===0||i===62)'),['06.30–06.40','16.50–17.00']);
  for(const [category,count]of [['aneka-nasi',8],['bakmi',5],['bakso-soto',6],['jajanan',8],['minuman',9],['roti',9],['layanan',5]]){await buyer.run(`resetFilters();chooseCategory('${category}')`);assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),count);}
  await buyer.run("resetFilters();searchInput.value='print';searchMenus()");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),5);
- await buyer.run("resetFilters();document.querySelector('.tenant[data-tenant=\"Kantin A\"] button').click()");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),16);
+ await buyer.run("resetFilters();document.querySelector('.tenant[data-tenant=\"Kantin\"] button').click()");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),45);
  await buyer.run('resetFilters()');assert.equal(await buyer.run('Array.from(menuList.querySelectorAll("h4"),x=>x.textContent).every((x,i,a)=>!i||menuAlphabet.compare(a[i-1],x)<=0)'),true);
  assert.equal(await buyer.run('document.querySelector(".product-heading h2").textContent'),'Temukan produk & layanan');
  assert.equal(await buyer.run('document.querySelector(".product-heading p").textContent'),'Dari sarapan, makan siang, sampai kebutuhan kampus.');
  assert.equal(await buyer.run('searchInput.placeholder'),'Cari produk, layanan, atau mitra kampus…');
  assert.equal(await buyer.run('document.querySelector("#menu .search-shortcut")'),null);
- assert.equal(await buyer.run('partnerSelect.options.length'),5);
- await buyer.run("chooseCategory('minuman');partnerSelect.value='Kantin A';partnerSelect.dispatchEvent(new Event('change',{bubbles:true}))");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),2);assert.equal(await buyer.run('category'),'minuman');
+ assert.equal(await buyer.run('partnerSelect.options.length'),3);
+ await buyer.run("chooseCategory('minuman');partnerSelect.value='Kantin';partnerSelect.dispatchEvent(new Event('change',{bubbles:true}))");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),9);assert.equal(await buyer.run('category'),'minuman');
  await buyer.run("searchInput.value='lemon';searchInput.dispatchEvent(new Event('input',{bubbles:true}))");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),1);
  await buyer.run("clearSearch();partnerSelect.value='Fotokopi & Print Kampus';partnerSelect.dispatchEvent(new Event('change',{bubbles:true}))");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),0);
  await buyer.run("document.querySelector('.category-bar [data-category=layanan]').click()");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),5);
@@ -34,26 +36,29 @@ async function reload(browser){await browser.send('Page.reload');await wait(150)
  assert.equal(await buyer.run('(()=>{const heading=document.querySelector(".product-heading h2"),desc=document.querySelector(".product-heading p"),size=parseFloat(getComputedStyle(heading).fontSize);return size>=52&&size<=60&&desc.getBoundingClientRect().left===heading.getBoundingClientRect().left&&desc.getBoundingClientRect().top>=heading.getBoundingClientRect().bottom})()'),true);
  assert.equal(await buyer.run('document.querySelector("#menu .search-box").getBoundingClientRect().width===document.querySelector(".product-filters").getBoundingClientRect().width'),true);
  await buyer.run("menu.scrollIntoView({behavior:'instant'})");await buyer.shot('.tmp-campus-filters-desktop.png');
+ await buyer.run("document.getElementById('tenant').scrollIntoView({behavior:'instant'})");await buyer.shot('.tmp-campus-partners-desktop.png');
  await buyer.send('Emulation.setDeviceMetricsOverride',{width:390,height:1000,deviceScaleFactor:1,mobile:true});
  assert.equal(await buyer.run('document.documentElement.scrollWidth<=innerWidth'),true);
  assert.equal(await buyer.run('partnerSelect.getBoundingClientRect().width===document.querySelector(".partner-filter").getBoundingClientRect().width'),true);
  await buyer.run("menu.scrollIntoView({behavior:'instant'})");await buyer.shot('.tmp-campus-filters-mobile.png');
+ await buyer.run("document.getElementById('tenant').scrollIntoView({behavior:'instant'})");await buyer.shot('.tmp-campus-partners-mobile.png');
  await buyer.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
  report.push('Product heading/search layout, combined category + partner dropdown + search, reset synchronization and full-width mobile dropdown: PASS');
- report.push('50 products/services, four partners, six food filters plus services, search, partner cards and alphabetical sorting: PASS');
- await buyer.run("addMenu('bubur-ayam');addMenu('bakmi-jawa');addMenu('croissant-original');increaseItem(0);removeItem(0)");assert.equal(await buyer.run('groupedCart().length'),3);
+ report.push('50 products/services, two partners, six food filters plus services, search, partner cards and alphabetical sorting: PASS');
+ await buyer.run("addMenu('bubur-ayam');addMenu('bakmi-jawa');addMenu('croissant-original');increaseItem(0);removeItem(0)");assert.equal(await buyer.run('groupedCart().length'),1);
  const admin=await tab();await admin.run('logout()');await login(admin,'aliyadewirahmawati@gmail.com','admin');assert.equal(await admin.run('isAdmin()'),true);
+ assert.deepEqual(await admin.run('Object.keys(readOrderState().partners)'),['Kantin','Fotokopi & Print Kampus']);
  assert.equal(await admin.run('adminInventory.querySelectorAll(".inventory-card").length'),50);
  // All five service forms, numeric calculations, and local file metadata.
  const scenarios=[['fotokopi',"serviceForm.elements.color.value='Warna';serviceForm.elements.sheets.value=3;serviceForm.elements.copies.value=2",9000],['print-dokumen',"const dt=new DataTransfer();dt.items.add(new File(['sample'],'tugas <kampus>.pdf',{type:'application/pdf'}));serviceForm.elements.file.files=dt.files;serviceForm.elements.file.dispatchEvent(new Event('change',{bubbles:true}));serviceForm.elements.color.value='Warna';serviceForm.elements.sides.value='Dua sisi';serviceForm.elements.copies.value=2",10000],['scan-dokumen',"serviceForm.elements.pages.value=4;serviceForm.elements.format.value='JPG'",4000],['jilid-spiral',"serviceForm.elements.pages.value=120;serviceForm.elements.cover.value='Pink';serviceForm.elements.copies.value=2",32000],['laminating',"serviceForm.elements.size.value='A3';serviceForm.elements.sheets.value=2",16000]];
  for(const [id,fields,price]of scenarios){await buyer.run(`addMenu('${id}');${fields};updateServicePreview();serviceForm.requestSubmit()`);assert.equal(await buyer.run('serviceDialog.open'),false);assert.equal(await buyer.run(`cart.find(x=>x.menuId==='${id}').price`),price);}
- assert.equal(await buyer.run('groupedCart().length'),4);assert.equal(await buyer.run('items.innerText.includes("tugas <kampus>.pdf")'),true);assert.equal(await buyer.run('items.innerText.includes("File belum dikirim sungguhan")'),true);
+ assert.equal(await buyer.run('groupedCart().length'),2);assert.equal(await buyer.run('items.innerText.includes("tugas <kampus>.pdf")'),true);assert.equal(await buyer.run('items.innerText.includes("File belum dikirim sungguhan")'),true);
  assert.equal(buyer.requests.some(request=>request.method==='POST'||request.url.includes('tugas')),false);
  // Persist cart without leaking it to a different buyer account.
  const savedCart=await buyer.run('JSON.stringify(cart)');await login(buyer,'campus@qa.test');await reload(buyer);assert.equal(await buyer.run('JSON.stringify(cart)'),savedCart);
  await buyer.run("addMenu('scan-dokumen');serviceForm.elements.pages.value=0;serviceForm.requestSubmit()");assert.equal(await buyer.run('serviceDialog.open'),true);await buyer.run('closeServiceDialog()');
  await buyer.run("addMenu('print-dokumen');serviceForm.requestSubmit()");assert.equal(await buyer.run('serviceDialog.open'),true);await buyer.run('closeServiceDialog()');
- report.push('All five service forms, validated amounts, simulated file name only with no upload, calculated prices, four-partner cart and refresh persistence: PASS');
+ report.push('All five service forms, validated amounts, simulated file name only with no upload, calculated prices, two-partner cart and refresh persistence: PASS');
  // Stock input, +/- controls, limiting buyer quantities, manual availability and automatic reconciliation.
  await admin.run("document.getElementById('stock-bubur-ayam').value=2;document.querySelector('[data-stock-save=bubur-ayam]').click()");await buyer.until("safeState().inventory['bubur-ayam'].stock===2");await buyer.run('increaseItem(0);increaseItem(0)');assert.equal(await buyer.run("cartQuantity('bubur-ayam')"),2);
  await admin.run("document.querySelector('[data-stock-id=bubur-ayam][data-delta=\"1\"]').click()");await admin.until("readOrderState().inventory['bubur-ayam'].stock===3");await admin.run("document.querySelector('[data-stock-id=bubur-ayam][data-delta=\"-1\"]').click()");await admin.until("readOrderState().inventory['bubur-ayam'].stock===2");
@@ -76,15 +81,15 @@ async function reload(browser){await browser.send('Page.reload');await wait(150)
  await buyer.run("document.querySelector('#slots [data-slot=\"16.50–17.00\"]').click();await checkout()");assert.equal(await buyer.run('readOrders().at(-1).queueNumber'),'ANT-002');assert.equal(await buyer.run('readOrders().at(-1).slot'),'16.50–17.00');
  report.push('Closed and full slots reject checkout distinctly from stock; near-full state, last 16.50 slot, atomic stock reduction, receipts/confirmation/admin service details, order status progression: PASS');
  // Capacity default and override persist; manual inactive food cannot order even with stock.
- await admin.run("adminPartner='Kantin A';renderManagement(readOrderState());defaultCapacity.value=7;await saveDefaultCapacity();document.getElementById('stock-bubur-ayam').value=9;document.querySelector('[data-stock-save=bubur-ayam]').click()");await admin.until("readOrderState().inventory['bubur-ayam'].stock===9");
+ await admin.run("adminPartner='Kantin';renderManagement(readOrderState());defaultCapacity.value=7;await saveDefaultCapacity();document.getElementById('stock-bubur-ayam').value=9;document.querySelector('[data-stock-save=bubur-ayam]').click()");await admin.until("readOrderState().inventory['bubur-ayam'].stock===9");
  await admin.run("document.querySelector('[data-active-id=bubur-ayam]').click()");await buyer.until("document.querySelector('[data-add-menu=bubur-ayam]').disabled");await admin.run("document.querySelector('[data-active-id=bubur-ayam]').click()");await buyer.until("!document.querySelector('[data-add-menu=bubur-ayam]').disabled");
- await reload(admin);await login(admin,'aliyadewirahmawati@gmail.com','admin');assert.equal(await admin.run("readOrderState().partners['Kantin A'].capacity"),7);assert.equal(await admin.run("readOrderState().partners['Fotokopi & Print Kampus'].slots[slotList[0]].capacity"),1);
+ await reload(admin);await login(admin,'aliyadewirahmawati@gmail.com','admin');assert.equal(await admin.run("readOrderState().partners['Kantin'].capacity"),7);assert.equal(await admin.run("readOrderState().partners['Fotokopi & Print Kampus'].slots[slotList[0]].capacity"),1);
  await buyer.run("await mutateBusiness(state=>{state.inventory['bubur-ayam'].stock=999},'hack')");assert.equal(await buyer.run("readOrderState().inventory['bubur-ayam'].stock"),9);
  await buyer.run('logout()');await register(buyer,'Pembeli Lain','other@qa.test');assert.equal(await buyer.run('cart.length'),0);assert.equal(await buyer.run('orderHistory.querySelectorAll(".history-card").length'),0);
  await buyer.run("addMenu('air-mineral');await checkout()");assert.equal(await buyer.run('readOrders().at(-1).queueNumber'),'ANT-003');assert.equal(await buyer.run('orderHistory.querySelectorAll(".history-card").length'),1);
  report.push('Capacity/stock persistence, inactive stock reactivation, buyer cannot mutate operational data, account-specific cart and receipt privacy, global ANT continuation: PASS');
  // Concurrent last-stock checkout across buyer tabs must commit exactly once.
- await admin.run("await mutateBusiness(state=>{state.inventory['croissant-keju'].stock=1;state.partners['Kantin C'].capacity=10},'setup')");
+ await admin.run("await mutateBusiness(state=>{state.inventory['croissant-keju'].stock=1;state.partners['Kantin'].capacity=10},'setup')");
  await buyer.run("addMenu('croissant-keju')");const second=await tab();await second.run('logout()');await login(second,'campus@qa.test');await second.run("addMenu('croissant-keju')");
  const countBefore=await buyer.run('readOrders().length');await Promise.all([buyer.run('await checkout()'),second.run('await checkout()')]);assert.equal(await buyer.run('readOrders().length'),countBefore+1);assert.equal(await buyer.run("readOrderState().inventory['croissant-keju'].stock"),0);
  report.push('Concurrent checkout for final stock across two buyers commits one order without duplicate queue number or negative stock: PASS');
@@ -106,11 +111,30 @@ async function reload(browser){await browser.send('Page.reload');await wait(150)
 
  const migration=await tab();await migration.run('logout()');await login(migration,'aliyadewirahmawati@gmail.com','admin');
  await migration.run("window.backup=localStorage.getItem(ordersKey);const now=new Date().toISOString();localStorage.setItem(ordersKey,JSON.stringify({version:2,lastQueueNumber:42,orders:[{id:'legacy-v2',queueSequence:42,queueNumber:'ANT-042',buyerName:'Pembeli Lama',buyerEmail:'campus@qa.test',items:[{tenant:'Ayam Bu Rina',name:'Bubur Ayam',price:12000,qty:3}],total:36000,slot:'12.00–12.10',status:'waiting',createdAt:now,statusHistory:[{status:'waiting',at:now}]}]}));await withDataLock(ordersKey,migrateOrders);refreshBusiness()");
- assert.equal(await migration.run('readOrders()[0].items[0].tenant'),'Kantin A');assert.equal(await migration.run("readOrderState().inventory['bubur-ayam'].stock"),17);assert.equal(await migration.run('readOrderState().lastQueueNumber'),42);
+ assert.equal(await migration.run('readOrders()[0].items[0].tenant'),'Kantin');assert.equal(await migration.run("readOrderState().inventory['bubur-ayam'].stock"),17);assert.equal(await migration.run('readOrderState().lastQueueNumber'),42);
  await migration.run('await withDataLock(ordersKey,migrateOrders)');assert.equal(await migration.run("readOrderState().inventory['bubur-ayam'].stock"),17);
+ // Merge the former three canteens without resetting inventory, promotions or receipts.
+ await migration.run("window.legacyBusiness=readOrderState();legacyBusiness.partners={'Kantin A':{capacity:8,slots:{[slotList[0]]:{capacity:4,closed:true}}},'Kantin B':{capacity:6,slots:{[slotList[0]]:{capacity:9,closed:false},[slotList[1]]:{capacity:3,closed:false}}},'Kantin C':{capacity:7,slots:{}},'Fotokopi & Print Kampus':{capacity:12,slots:{[slotList[0]]:{capacity:2,closed:false}}}};legacyBusiness.orders[0].items=[{tenant:'Kantin A',name:'Bubur Ayam',menuId:'bubur-ayam',price:12000,qty:3},{tenant:'Kantin B',name:'Dimsum Mentai',menuId:'dimsum-mentai',price:14000,qty:2},{tenant:'Kantin C',name:'Croissant Original',menuId:'croissant-original',price:12000,qty:1}];legacyBusiness.orders[0].total=76000;legacyBusiness.inventory['dimsum-mentai']={stock:4,active:false};legacyBusiness.promos['dimsum-mentai'].stock=2;legacyBusiness.promos['dimsum-mentai'].active=false;localStorage.setItem(ordersKey,JSON.stringify(legacyBusiness));await withDataLock(ordersKey,migrateOrders);refreshBusiness()");
+ assert.deepEqual(await migration.run('Object.keys(readOrderState().partners).sort()'),['Fotokopi & Print Kampus','Kantin']);
+ assert.deepEqual(await migration.run('readOrderState().partners.Kantin'),{capacity:6,slots:{'06.30–06.40':{capacity:4,closed:true},'06.40–06.50':{capacity:3,closed:false}}});
+ assert.equal(await migration.run("JSON.stringify(readOrderState().partners['Fotokopi & Print Kampus'])===JSON.stringify(legacyBusiness.partners['Fotokopi & Print Kampus'])"),true);
+ assert.equal(await migration.run('JSON.stringify(readOrderState().inventory)===JSON.stringify(legacyBusiness.inventory)&&JSON.stringify(readOrderState().promos)===JSON.stringify(legacyBusiness.promos)'),true);
+ assert.equal(await migration.run("JSON.stringify(readOrders()[0])===JSON.stringify({...legacyBusiness.orders[0],items:legacyBusiness.orders[0].items.map(item=>({...item,tenant:'Kantin'}))})"),true);
+ assert.equal(await migration.run("slotInfo(readOrderState(),'Kantin','12.00–12.10').used"),1);assert.equal(await migration.run('readOrderState().lastQueueNumber'),42);
+ await migration.run('window.mergedBusiness=localStorage.getItem(ordersKey);await withDataLock(ordersKey,migrateOrders)');assert.equal(await migration.run('localStorage.getItem(ordersKey)===mergedBusiness'),true);
+ // An already-configured Kantin remains authoritative if legacy partner keys also exist.
+ assert.deepEqual(await migration.run("hydrateState({...JSON.parse(mergedBusiness),partners:{...legacyBusiness.partners,Kantin:{capacity:11,slots:{}}}}).partners.Kantin"),{capacity:11,slots:{}});
+ // Restore persisted carts through their stable menu IDs, then save the new partner names.
+ await migration.run("window.cartBackup=localStorage.getItem(cartKey);window.userBackup=currentUser;currentUser={role:'buyer',email:'migration@qa.test'};localStorage.setItem(cartKey,JSON.stringify({'migration@qa.test':{slot:slotList[0],items:[{tenant:'Kantin C',menuId:'croissant-original',name:'Croissant Original',price:12000,qty:1},{tenant:'Fotokopi & Print Kampus',menuId:'scan-dokumen',name:'Scan Dokumen',price:2000,qty:1,details:{pages:2,format:'PDF'}}]}}));restoreCart();saveCart()");
+ assert.deepEqual(await migration.run('cart.map(item=>item.tenant)'),['Kantin','Fotokopi & Print Kampus']);assert.equal(await migration.run('groupedCart().length'),2);
+ assert.deepEqual(await migration.run("JSON.parse(localStorage.getItem(cartKey))['migration@qa.test'].items.map(item=>item.tenant)"),['Kantin','Fotokopi & Print Kampus']);
+ await migration.run('currentUser=userBackup;cart=[];if(cartBackup===null)localStorage.removeItem(cartKey);else localStorage.setItem(cartKey,cartBackup)');
+ // Invalid old capacity must fail migration without overwriting the stored data.
+ await migration.run("legacyBusiness.partners['Kantin A'].capacity=0;window.invalidBusiness=JSON.stringify(legacyBusiness);localStorage.setItem(ordersKey,invalidBusiness)");
+ assert.equal(await migration.run('await withDataLock(ordersKey,migrateOrders).then(()=>false,()=>true)'),true);assert.equal(await migration.run('localStorage.getItem(ordersKey)===invalidBusiness'),true);
  await migration.run("localStorage.setItem(ordersKey,'broken');await withDataLock(ordersKey,migrateOrders).catch(()=>{});refreshBusiness()");assert.equal(await migration.run('localStorage.getItem(ordersKey)'),'broken');assert.equal(await migration.run('adminStorageError.hidden'),false);
  await migration.run('localStorage.setItem(ordersKey,backup);refreshBusiness()');assert.deepEqual(migration.errors,[]);
- report.push('Existing v2 receipt upgrade maps partner names, preserves queue counter, initializes remaining stock once; corrupted storage is preserved: PASS');
+ report.push('Legacy receipts, three-canteen state and saved carts migrate to two partners; inventories/prices/promo stocks/history/counter preserved, conservative slot merge is idempotent; invalid data is preserved: PASS');
 
  // Last Call: use a controlled clock, including WIB boundaries and the next day.
  async function setTime(browser,iso){await browser.run(`window.__qaNow=Date.parse('${iso}');localStorage.setItem('antreless-qa-clock',String(__qaNow));refreshLastCallClock();await maybeShowLastCall()`)}
@@ -131,7 +155,7 @@ async function reload(browser){await browser.send('Page.reload');await wait(150)
  await buyer.send('Emulation.setDeviceMetricsOverride',{width:390,height:1000,deviceScaleFactor:1,mobile:true});assert.equal(await buyer.run('lastCallDialog.scrollWidth<=lastCallDialog.clientWidth'),true);await buyer.shot('.tmp-campus-last-call-popup-mobile.png');
  await buyer.run("document.querySelector('.last-call-actions .primary').click()");assert.equal(await buyer.run('lastCallDialog.open'),false);assert.equal(await buyer.run('promoOnly'),true);assert.equal(await buyer.run('location.hash'),'#menu');assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),3);
  assert.equal(await buyer.run('menuList.querySelectorAll(".menu-hemat-badge").length'),3);assert.equal(await buyer.run('menuList.querySelectorAll("del").length'),3);
- await buyer.run("choosePartnerFilter('Kantin A');chooseCategory('aneka-nasi');searchInput.value='geprek';searchMenus()");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),1);
+ await buyer.run("choosePartnerFilter('Kantin');chooseCategory('aneka-nasi');searchInput.value='geprek';searchMenus()");assert.equal(await buyer.run('menuList.querySelectorAll(".dish").length'),1);
  await buyer.run('resetFilters();await maybeShowLastCall()');assert.equal(await buyer.run('lastCallDialog.open'),false);
  await reload(buyer);assert.equal(await buyer.run('lastCallDialog.open'),false);
  await buyer.run('logout()');await login(buyer,'other@qa.test');await buyer.run('await maybeShowLastCall()');assert.equal(await buyer.run('lastCallDialog.open'),false);
@@ -188,7 +212,7 @@ async function reload(browser){await browser.send('Page.reload');await wait(150)
  await setTime(admin,'2026-10-12T08:00:00Z');await admin.run("await mutateBusiness(state=>{state.promos['croissant-original'].stock=1},'restock promo')");await buyer.run("emptyCart();addMenu('croissant-original');window.beforePromoQuota=localStorage.getItem(ordersKey);window.setBeforePromo=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key===ordersKey)throw Error('Quota exceeded');return setBeforePromo.call(this,key,value)};await checkout();Storage.prototype.setItem=setBeforePromo");assert.equal(await buyer.run('localStorage.getItem(ordersKey)===beforePromoQuota'),true);assert.equal(await buyer.run('cart.length'),1);
  await buyer.run("localStorage.setItem(ordersKey,'broken');increaseItem(0)");assert.equal(await buyer.run('cart[0].qty'),1);assert.equal(await buyer.run('localStorage.getItem(ordersKey)'),'broken');await buyer.run('localStorage.setItem(ordersKey,beforePromoQuota);refreshBusiness()');
  // Independent pools allow promo sales at zero regular stock, and both prices for the same menu.
- await buyer.run('emptyCart()');await admin.run("selectedPromoMenu='bubur-ayam';await mutateBusiness(state=>{state.inventory['bubur-ayam'].stock=0;state.partners['Kantin A'].capacity=10},'separate pools');renderPromoAdmin(readOrderState());promoMode.value='percent';updatePromoEditor();promoValue.value=25;promoStock.value=7;promoActive.checked=true;await saveLastCallPromo()");
+ await buyer.run('emptyCart()');await admin.run("selectedPromoMenu='bubur-ayam';await mutateBusiness(state=>{state.inventory['bubur-ayam'].stock=0;state.partners['Kantin'].capacity=10},'separate pools');renderPromoAdmin(readOrderState());promoMode.value='percent';updatePromoEditor();promoValue.value=25;promoStock.value=7;promoActive.checked=true;await saveLastCallPromo()");
  await buyer.until("readOrderState().promos['bubur-ayam']?.stock===7");assert.equal(await buyer.run("readOrderState().inventory['bubur-ayam'].stock"),0);
  await buyer.run("document.querySelector('#lastCallFeaturedCards [data-promo-add=bubur-ayam]').click();await checkout()");assert.equal(await buyer.run('readOrders().at(-1).total'),9000);assert.equal(await buyer.run("readOrderState().promos['bubur-ayam'].stock"),6);assert.equal(await buyer.run("readOrderState().inventory['bubur-ayam'].stock"),0);
  await admin.run("await mutateBusiness(state=>{state.inventory['bubur-ayam'].stock=2;state.promos['bubur-ayam'].stock=2},'mixed pools')");await buyer.until("readOrderState().inventory['bubur-ayam'].stock===2");

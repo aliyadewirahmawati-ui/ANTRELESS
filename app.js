@@ -1,58 +1,58 @@
 ﻿const categoryNames={all:'Semua menu','aneka-nasi':'Aneka Nasi',bakmi:'Bakmi','bakso-soto':'Bakso dan Soto',jajanan:'Jajanan',minuman:'Minuman',roti:'Roti',layanan:'Layanan kampus'};
 // Photo coordinates refer to the existing 3 × 3 image sheet, never the menu index.
 const menuCatalog=[
-  {name:'Bubur Ayam',category:'aneka-nasi',description:'Bubur hangat, ayam suwir, cakwe, dan daun bawang.',price:12000,tenant:'Kantin A'},
-  {name:'Nasi Ayam Geprek',category:'aneka-nasi',description:'Ayam crispy, nasi, dan sambal geprek.',price:18000,tenant:'Kantin A',photo:{x:0,y:0}},
-  {name:'Nasi Ayam Teriyaki',category:'aneka-nasi',description:'Ayam teriyaki, sayuran, dan nasi hangat.',price:20000,tenant:'Kantin A',photo:{x:50,y:0}},
-  {name:'Nasi Goreng',category:'aneka-nasi',description:'Nasi goreng gurih dengan telur dan acar.',price:15000,tenant:'Kantin A'},
-  {name:'Nasi Kuning',category:'aneka-nasi',description:'Nasi kunyit, telur, orek tempe, dan sambal.',price:14000,tenant:'Kantin A'},
-  {name:'Nasi Liwet',category:'aneka-nasi',description:'Nasi liwet harum, ayam suwir, dan lalapan.',price:18000,tenant:'Kantin A'},
-  {name:'Nasi Pecel',category:'aneka-nasi',description:'Nasi, sayuran rebus, bumbu kacang, dan rempeyek.',price:13000,tenant:'Kantin A'},
-  {name:'Nasi Uduk',category:'aneka-nasi',description:'Nasi santan, telur, bihun, dan orek tempe.',price:14000,tenant:'Kantin A'},
-  {name:'Bakmi Ayam',category:'bakmi',description:'Bakmi gurih dengan ayam berbumbu dan sawi.',price:16000,tenant:'Kantin B'},
-  {name:'Bakmi Goreng',category:'bakmi',description:'Bakmi goreng kecap, telur, dan sayuran.',price:16000,tenant:'Kantin B'},
-  {name:'Bakmi Jawa',category:'bakmi',description:'Bakmi bumbu Jawa dengan ayam suwir dan telur.',price:18000,tenant:'Kantin B'},
-  {name:'Bakmi Kuah',category:'bakmi',description:'Bakmi berkuah hangat dengan telur dan sayuran.',price:16000,tenant:'Kantin B'},
-  {name:'Mie Ayam Pangsit',category:'bakmi',description:'Mie ayam gurih dengan sawi dan pangsit.',price:16000,tenant:'Kantin B',photo:{x:0,y:50}},
-  {name:'Bakso Ayam',category:'bakso-soto',description:'Bakso ayam, bihun, dan kuah kaldu hangat.',price:14000,tenant:'Kantin A'},
-  {name:'Bakso Sapi',category:'bakso-soto',description:'Bakso sapi, mie, dan kuah kaldu gurih.',price:16000,tenant:'Kantin A'},
-  {name:'Bakso Urat',category:'bakso-soto',description:'Bakso urat kenyal dengan mie dan kuah kaldu.',price:18000,tenant:'Kantin A'},
-  {name:'Soto Ayam',category:'bakso-soto',description:'Soto ayam kuah kuning, soun, dan telur.',price:15000,tenant:'Kantin A'},
-  {name:'Soto Bandung',category:'bakso-soto',description:'Soto sapi bening dengan lobak dan kedelai.',price:20000,tenant:'Kantin A'},
-  {name:'Soto Betawi',category:'bakso-soto',description:'Soto sapi kuah santan dengan kentang dan tomat.',price:22000,tenant:'Kantin A'},
-  {name:'Batagor',category:'jajanan',description:'Bakso tahu goreng dengan saus kacang.',price:10000,tenant:'Kantin B'},
-  {name:'Cireng',category:'jajanan',description:'Cireng renyah, 5 buah, dengan sambal rujak.',price:8000,tenant:'Kantin B'},
-  {name:'Dimsum Mentai',category:'jajanan',description:'4 buah dimsum ayam dengan saus mentai.',price:14000,tenant:'Kantin B',photo:{x:50,y:50}},
-  {name:'Kentang Goreng',category:'jajanan',description:'Kentang goreng renyah dengan saus pilihan.',price:10000,tenant:'Kantin B'},
-  {name:'Pisang Goreng',category:'jajanan',description:'Pisang goreng hangat dan renyah, 4 buah.',price:8000,tenant:'Kantin B'},
-  {name:'Seblak',category:'jajanan',description:'Kerupuk kuah kencur pedas dengan telur dan sayur.',price:14000,tenant:'Kantin B'},
-  {name:'Siomay',category:'jajanan',description:'Siomay kukus dengan tahu dan saus kacang.',price:12000,tenant:'Kantin B'},
-  {name:'Tahu Crispy',category:'jajanan',description:'Tahu goreng renyah dengan bumbu gurih.',price:8000,tenant:'Kantin B'},
-  {name:'Air Mineral',category:'minuman',description:'Air mineral botol 600 ml, segar untuk harimu.',price:3000,tenant:'Kantin C'},
-  {name:'Es Cokelat',category:'minuman',description:'Minuman cokelat dingin dengan susu.',price:10000,tenant:'Kantin C'},
-  {name:'Es Jeruk',category:'minuman',description:'Perasan jeruk segar dengan es batu.',price:6000,tenant:'Kantin A'},
-  {name:'Es Kopi Susu',category:'minuman',description:'Kopi susu dingin dengan gula aren.',price:12000,tenant:'Kantin C'},
-  {name:'Es Teh Lemon',category:'minuman',description:'Teh lemon dingin, segar dengan manis yang pas.',price:5000,tenant:'Kantin A',photo:{x:100,y:0}},
-  {name:'Jus Alpukat',category:'minuman',description:'Jus alpukat lembut dengan susu cokelat.',price:12000,tenant:'Kantin C'},
-  {name:'Jus Jambu',category:'minuman',description:'Jus jambu merah segar dengan es.',price:10000,tenant:'Kantin C'},
-  {name:'Smoothie Berry',category:'minuman',description:'Smoothie buah berry segar tanpa sirup.',price:13000,tenant:'Kantin C',photo:{x:50,y:100}},
-  {name:'Thai Tea',category:'minuman',description:'Teh Thailand dingin dengan susu yang creamy.',price:8000,tenant:'Kantin B',photo:{x:100,y:50}},
-  {name:'Croissant Cokelat',category:'roti',description:'Croissant berlapis renyah dengan isi cokelat.',price:15000,tenant:'Kantin C'},
-  {name:'Croissant Keju',category:'roti',description:'Croissant mentega dengan keju gurih.',price:15000,tenant:'Kantin C'},
-  {name:'Croissant Original',category:'roti',description:'Croissant mentega klasik, renyah dan lembut.',price:12000,tenant:'Kantin C'},
-  {name:'Roti Bakar Cokelat',category:'roti',description:'Roti bakar hangat dengan isian cokelat.',price:10000,tenant:'Kantin C'},
-  {name:'Roti Bakar Keju',category:'roti',description:'Roti bakar dengan keju dan susu.',price:11000,tenant:'Kantin C'},
-  {name:'Roti Isi Ayam',category:'roti',description:'Roti lembut dengan ayam berbumbu gurih.',price:12000,tenant:'Kantin C'},
-  {name:'Roti Isi Telur',category:'roti',description:'Roti lembut dengan telur dan mayones.',price:10000,tenant:'Kantin C'},
-  {name:'Roti Kukus',category:'roti',description:'Roti kukus lembut dengan susu manis.',price:8000,tenant:'Kantin C'},
-  {name:'Sandwich Telur',category:'roti',description:'Roti gandum, telur, sayuran, dan mayones.',price:15000,tenant:'Kantin C',photo:{x:100,y:100}},
+  {name:'Bubur Ayam',category:'aneka-nasi',description:'Bubur hangat, ayam suwir, cakwe, dan daun bawang.',price:12000,tenant:'Kantin'},
+  {name:'Nasi Ayam Geprek',category:'aneka-nasi',description:'Ayam crispy, nasi, dan sambal geprek.',price:18000,tenant:'Kantin',photo:{x:0,y:0}},
+  {name:'Nasi Ayam Teriyaki',category:'aneka-nasi',description:'Ayam teriyaki, sayuran, dan nasi hangat.',price:20000,tenant:'Kantin',photo:{x:50,y:0}},
+  {name:'Nasi Goreng',category:'aneka-nasi',description:'Nasi goreng gurih dengan telur dan acar.',price:15000,tenant:'Kantin'},
+  {name:'Nasi Kuning',category:'aneka-nasi',description:'Nasi kunyit, telur, orek tempe, dan sambal.',price:14000,tenant:'Kantin'},
+  {name:'Nasi Liwet',category:'aneka-nasi',description:'Nasi liwet harum, ayam suwir, dan lalapan.',price:18000,tenant:'Kantin'},
+  {name:'Nasi Pecel',category:'aneka-nasi',description:'Nasi, sayuran rebus, bumbu kacang, dan rempeyek.',price:13000,tenant:'Kantin'},
+  {name:'Nasi Uduk',category:'aneka-nasi',description:'Nasi santan, telur, bihun, dan orek tempe.',price:14000,tenant:'Kantin'},
+  {name:'Bakmi Ayam',category:'bakmi',description:'Bakmi gurih dengan ayam berbumbu dan sawi.',price:16000,tenant:'Kantin'},
+  {name:'Bakmi Goreng',category:'bakmi',description:'Bakmi goreng kecap, telur, dan sayuran.',price:16000,tenant:'Kantin'},
+  {name:'Bakmi Jawa',category:'bakmi',description:'Bakmi bumbu Jawa dengan ayam suwir dan telur.',price:18000,tenant:'Kantin'},
+  {name:'Bakmi Kuah',category:'bakmi',description:'Bakmi berkuah hangat dengan telur dan sayuran.',price:16000,tenant:'Kantin'},
+  {name:'Mie Ayam Pangsit',category:'bakmi',description:'Mie ayam gurih dengan sawi dan pangsit.',price:16000,tenant:'Kantin',photo:{x:0,y:50}},
+  {name:'Bakso Ayam',category:'bakso-soto',description:'Bakso ayam, bihun, dan kuah kaldu hangat.',price:14000,tenant:'Kantin'},
+  {name:'Bakso Sapi',category:'bakso-soto',description:'Bakso sapi, mie, dan kuah kaldu gurih.',price:16000,tenant:'Kantin'},
+  {name:'Bakso Urat',category:'bakso-soto',description:'Bakso urat kenyal dengan mie dan kuah kaldu.',price:18000,tenant:'Kantin'},
+  {name:'Soto Ayam',category:'bakso-soto',description:'Soto ayam kuah kuning, soun, dan telur.',price:15000,tenant:'Kantin'},
+  {name:'Soto Bandung',category:'bakso-soto',description:'Soto sapi bening dengan lobak dan kedelai.',price:20000,tenant:'Kantin'},
+  {name:'Soto Betawi',category:'bakso-soto',description:'Soto sapi kuah santan dengan kentang dan tomat.',price:22000,tenant:'Kantin'},
+  {name:'Batagor',category:'jajanan',description:'Bakso tahu goreng dengan saus kacang.',price:10000,tenant:'Kantin'},
+  {name:'Cireng',category:'jajanan',description:'Cireng renyah, 5 buah, dengan sambal rujak.',price:8000,tenant:'Kantin'},
+  {name:'Dimsum Mentai',category:'jajanan',description:'4 buah dimsum ayam dengan saus mentai.',price:14000,tenant:'Kantin',photo:{x:50,y:50}},
+  {name:'Kentang Goreng',category:'jajanan',description:'Kentang goreng renyah dengan saus pilihan.',price:10000,tenant:'Kantin'},
+  {name:'Pisang Goreng',category:'jajanan',description:'Pisang goreng hangat dan renyah, 4 buah.',price:8000,tenant:'Kantin'},
+  {name:'Seblak',category:'jajanan',description:'Kerupuk kuah kencur pedas dengan telur dan sayur.',price:14000,tenant:'Kantin'},
+  {name:'Siomay',category:'jajanan',description:'Siomay kukus dengan tahu dan saus kacang.',price:12000,tenant:'Kantin'},
+  {name:'Tahu Crispy',category:'jajanan',description:'Tahu goreng renyah dengan bumbu gurih.',price:8000,tenant:'Kantin'},
+  {name:'Air Mineral',category:'minuman',description:'Air mineral botol 600 ml, segar untuk harimu.',price:3000,tenant:'Kantin'},
+  {name:'Es Cokelat',category:'minuman',description:'Minuman cokelat dingin dengan susu.',price:10000,tenant:'Kantin'},
+  {name:'Es Jeruk',category:'minuman',description:'Perasan jeruk segar dengan es batu.',price:6000,tenant:'Kantin'},
+  {name:'Es Kopi Susu',category:'minuman',description:'Kopi susu dingin dengan gula aren.',price:12000,tenant:'Kantin'},
+  {name:'Es Teh Lemon',category:'minuman',description:'Teh lemon dingin, segar dengan manis yang pas.',price:5000,tenant:'Kantin',photo:{x:100,y:0}},
+  {name:'Jus Alpukat',category:'minuman',description:'Jus alpukat lembut dengan susu cokelat.',price:12000,tenant:'Kantin'},
+  {name:'Jus Jambu',category:'minuman',description:'Jus jambu merah segar dengan es.',price:10000,tenant:'Kantin'},
+  {name:'Smoothie Berry',category:'minuman',description:'Smoothie buah berry segar tanpa sirup.',price:13000,tenant:'Kantin',photo:{x:50,y:100}},
+  {name:'Thai Tea',category:'minuman',description:'Teh Thailand dingin dengan susu yang creamy.',price:8000,tenant:'Kantin',photo:{x:100,y:50}},
+  {name:'Croissant Cokelat',category:'roti',description:'Croissant berlapis renyah dengan isi cokelat.',price:15000,tenant:'Kantin'},
+  {name:'Croissant Keju',category:'roti',description:'Croissant mentega dengan keju gurih.',price:15000,tenant:'Kantin'},
+  {name:'Croissant Original',category:'roti',description:'Croissant mentega klasik, renyah dan lembut.',price:12000,tenant:'Kantin'},
+  {name:'Roti Bakar Cokelat',category:'roti',description:'Roti bakar hangat dengan isian cokelat.',price:10000,tenant:'Kantin'},
+  {name:'Roti Bakar Keju',category:'roti',description:'Roti bakar dengan keju dan susu.',price:11000,tenant:'Kantin'},
+  {name:'Roti Isi Ayam',category:'roti',description:'Roti lembut dengan ayam berbumbu gurih.',price:12000,tenant:'Kantin'},
+  {name:'Roti Isi Telur',category:'roti',description:'Roti lembut dengan telur dan mayones.',price:10000,tenant:'Kantin'},
+  {name:'Roti Kukus',category:'roti',description:'Roti kukus lembut dengan susu manis.',price:8000,tenant:'Kantin'},
+  {name:'Sandwich Telur',category:'roti',description:'Roti gandum, telur, sayuran, dan mayones.',price:15000,tenant:'Kantin',photo:{x:100,y:100}},
   {name:'Fotokopi',category:'layanan',description:'Salin dokumen hitam-putih atau warna sesuai kebutuhan.',price:500,tenant:'Fotokopi & Print Kampus',service:true},
   {name:'Print Dokumen',category:'layanan',description:'Cetak file, pilih warna dan sisi cetak.',price:2000,tenant:'Fotokopi & Print Kampus',service:true},
   {name:'Scan Dokumen',category:'layanan',description:'Digitalisasi halaman menjadi PDF atau JPG.',price:1000,tenant:'Fotokopi & Print Kampus',service:true},
   {name:'Jilid Spiral',category:'layanan',description:'Rapikan tugas dan laporan dengan cover pilihan.',price:8000,tenant:'Fotokopi & Print Kampus',service:true},
   {name:'Laminating',category:'layanan',description:'Lindungi lembar A4 atau A3.',price:4000,tenant:'Fotokopi & Print Kampus',service:true}
 ].map(menu=>({...menu,id:menu.name.toLowerCase().replaceAll(' ','-')}));
-const menus=Object.fromEntries(['Kantin A','Kantin B','Kantin C','Fotokopi & Print Kampus'].map(tenant=>[tenant,menuCatalog.filter(menu=>menu.tenant===tenant)]));
+const menus=Object.fromEntries(['Kantin','Fotokopi & Print Kampus'].map(tenant=>[tenant,menuCatalog.filter(menu=>menu.tenant===tenant)]));
 const menuAlphabet=new Intl.Collator('id-ID',{sensitivity:'base'});
 const categoryIllustrations={
   'aneka-nasi':'<path d="M33 74c4-15 16-23 31-23s27 8 31 23" fill="var(--surface)"/><path d="M27 77h74c-3 22-16 34-37 34S30 99 27 77Z"/><path d="M46 72l5-7m12 5 3-9m12 10 5-6M52 42c-8-9 8-11 0-20m22 20c-8-9 8-11 0-20"/>',
@@ -64,8 +64,8 @@ const categoryIllustrations={
 };
 const partnerNames=Object.keys(menus),cartKey='antreless-carts-v1';
 const slotList=Array.from({length:63},(_,i)=>{const time=n=>String(Math.floor(n/60)).padStart(2,'0')+'.'+String(n%60).padStart(2,'0');return time(390+i*10)+'–'+time(400+i*10)});
-const oldPartners={'Ayam Bu Rina':'Kantin A','Mie Pojok':'Kantin B','Segar Sore':'Kantin C'};
-let cartMessage='',serviceMenuId=null,adminPartner='Kantin A',adminSlot='06.30–06.40',inventoryPartner='all';
+const oldPartners={'Ayam Bu Rina':'Kantin','Mie Pojok':'Kantin','Segar Sore':'Kantin','Kantin A':'Kantin','Kantin B':'Kantin','Kantin C':'Kantin'};
+let cartMessage='',serviceMenuId=null,adminPartner='Kantin',adminSlot='06.30–06.40',inventoryPartner='all';
 const $=id=>document.getElementById(id);
 let tenant='all',category='all',cart=[],slot='06.30–06.40',authMode='login',currentUser=null,authBusy=false;
 const accountKey='antreless-demo-accounts-v1',sessionKey='antreless-demo-session-v1';
@@ -86,7 +86,7 @@ const lastCallPopupKey='antreless-last-call-popup-v1';
 let promoOnly=false,selectedPromoMenu='nasi-ayam-geprek';
 function campusMinutes(now=new Date()){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);return Number(parts.find(part=>part.type==='hour').value)*60+Number(parts.find(part=>part.type==='minute').value)}
 function lastCallHours(now=new Date()){const minutes=campusMinutes(now);return minutes>=900&&minutes<1020}
-function eligibleLastCall(menu){return !!menu&&!menu.service&&['aneka-nasi','bakmi','bakso-soto','jajanan','minuman','roti'].includes(menu.category)&&['Kantin A','Kantin B','Kantin C'].includes(menu.tenant)}
+function eligibleLastCall(menu){return !!menu&&!menu.service&&['aneka-nasi','bakmi','bakso-soto','jajanan','minuman','roti'].includes(menu.category)&&menu.tenant==='Kantin'}
 function initialPromos(inventory){
   return Object.fromEntries([['nasi-ayam-geprek',15000,5],['dimsum-mentai',10000,6],['croissant-original',9000,5]].map(([id,price,stock])=>[id,{active:inventory[id].active,mode:'price',value:price,price,dailyStock:stock,stock,stockDate:jakartaDate()}]));
 }
@@ -203,16 +203,34 @@ $('promoAdminList').addEventListener('click',event=>{
 
 
 function initialBusiness(){const inventory=Object.fromEntries(menuCatalog.map(menu=>[menu.id,{stock:menu.service?null:20,active:true}]));return {inventory,partners:Object.fromEntries(partnerNames.map(name=>[name,{capacity:5,slots:{}}])),promos:initialPromos(inventory)}}
+function validatePartnerConfig(partner){
+  if(!partner||!Number.isSafeInteger(partner.capacity)||partner.capacity<1||partner.capacity>1000||!partner.slots||typeof partner.slots!=='object'||Array.isArray(partner.slots))throw Error('Kapasitas tidak valid.');
+  for(const [time,value]of Object.entries(partner.slots))if(!slotList.includes(time)||!value||typeof value.closed!=='boolean'||!Number.isSafeInteger(value.capacity)||value.capacity<1||value.capacity>1000)throw Error('Slot tidak valid.');
+  return partner;
+}
+function mergeLegacyPartners(state){
+  if(!state.partners)return;
+  const legacy=Object.keys(oldPartners).filter(name=>Object.hasOwn(state.partners,name));
+  if(!legacy.length)return;
+  const configs=legacy.map(name=>validatePartnerConfig(state.partners[name]));
+  if(!Object.hasOwn(state.partners,'Kantin')){
+    // Keep the most restrictive old capacity and any closed slots until admin adjusts them.
+    const times=[...new Set(configs.flatMap(config=>Object.keys(config.slots)))];
+    state.partners.Kantin={capacity:Math.min(...configs.map(config=>config.capacity)),slots:Object.fromEntries(times.map(time=>[time,{capacity:Math.min(...configs.map(config=>config.slots[time]?.capacity||config.capacity)),closed:configs.some(config=>config.slots[time]?.closed)}]))};
+  }
+  for(const name of legacy)delete state.partners[name];
+}
 function validateBusiness(state){
   if(!state.inventory||!state.partners)throw Error('Data operasional belum tersedia.');
   for(const menu of menuCatalog){const item=state.inventory[menu.id];if(!item||typeof item.active!=='boolean'||(menu.service?item.stock!==null:!Number.isSafeInteger(item.stock)||item.stock<0))throw Error('Data stok tidak valid.');}
-  for(const name of partnerNames){const partner=state.partners[name];if(!partner||!Number.isSafeInteger(partner.capacity)||partner.capacity<1||partner.capacity>1000||!partner.slots||typeof partner.slots!=='object')throw Error('Kapasitas tidak valid.');for(const [time,value]of Object.entries(partner.slots)){if(!slotList.includes(time)||typeof value.closed!=='boolean'||!Number.isSafeInteger(value.capacity)||value.capacity<1||value.capacity>1000)throw Error('Slot tidak valid.');}}
+  for(const name of partnerNames)validatePartnerConfig(state.partners[name]);
   validatePromos(state);return state;
 }
 function hydrateState(state){
+  for(const order of state.orders)for(const item of order.items)item.tenant=oldPartners[item.tenant]||item.tenant;
   // Upgrade the existing receipt format without changing its IDs, prices or counter.
   if(!state.inventory&&!state.partners){Object.assign(state,initialBusiness());for(const order of state.orders){order.items.forEach(item=>{item.tenant=oldPartners[item.tenant]||item.tenant;const menu=menuCatalog.find(menu=>menu.name===item.name&&menu.tenant===item.tenant);if(menu){item.menuId=menu.id;if(!menu.service&&jakartaDate(order.createdAt)===jakartaDate())state.inventory[menu.id].stock=Math.max(0,state.inventory[menu.id].stock-item.qty);}});}}
-  hydratePromos(state);return validateBusiness(state);
+  mergeLegacyPartners(state);hydratePromos(state);return validateBusiness(state);
 }
 function safeState(){try{return readOrderState()}catch{return null}}
 function menuStatus(menu,state){
@@ -282,8 +300,8 @@ function addMenu(id,kind='auto'){
 function addFrom(name,index){const menu=menus[name]?.[index];if(menu)addMenu(menu.id)}
 $('menuList').addEventListener('click',event=>{const button=event.target.closest('[data-add-menu]');if(button&&!button.disabled)addMenu(button.dataset.addMenu,button.dataset.addKind)});
 function renderCatalogDetails(){
-  $('menuCount').textContent=menuCatalog.length;
-  document.querySelectorAll('[data-tenant-menu-count]').forEach(element=>{const name=element.dataset.tenantMenuCount;element.textContent='Lihat '+menus[name].length+(name===partnerNames[3]?' layanan':' menu')});
+  $('menuCount').textContent=menuCatalog.length;$('partnerCount').textContent=partnerNames.length;
+  document.querySelectorAll('[data-tenant-menu-count]').forEach(element=>{const name=element.dataset.tenantMenuCount;element.textContent='Lihat '+menus[name].length+(menus[name].every(menu=>menu.service)?' layanan':' menu')});
   $('inventoryPartner').innerHTML='<option value="all">Semua mitra kampus</option>'+partnerNames.map(name=>`<option>${escapeHTML(name)}</option>`).join('');
 }
 function increaseItem(index){

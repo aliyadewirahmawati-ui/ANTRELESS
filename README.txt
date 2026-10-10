@@ -28,11 +28,9 @@ Satu halaman login tanpa pilihan peran:
 
 ## Katalog dan mitra kampus
 
-50 pilihan produk & layanan dari empat mitra kampus:
+50 pilihan produk & layanan dari dua mitra kampus:
 
-- Kantin A: 16 menu, Aneka Nasi, Bakso dan Soto, serta minuman.
-- Kantin B: 14 menu, Bakmi, Jajanan, dan Thai Tea.
-- Kantin C: 15 menu, Minuman dan Roti termasuk semua croissant.
+- Kantin: 45 menu makanan dan minuman, termasuk Aneka Nasi, Bakmi, Bakso dan Soto, Jajanan, Minuman, dan Roti.
 - Fotokopi & Print Kampus: Fotokopi, Print Dokumen, Scan Dokumen, Jilid Spiral, Laminating.
 
 Enam kategori makanan tetap tersedia: Aneka Nasi (8), Bakmi (5), Bakso dan Soto (6), Jajanan (8), Minuman (9), Roti (9). Panel Filter produk memisahkan chip Jenis (Semua menjadi pilihan pertama, ditambah Layanan Kampus) dan dropdown Mitra kampus. Pencarian meliputi nama, deskripsi, kategori, serta mitra kampus dan dapat digabungkan dengan chip Jenis serta dropdown Mitra kampus. Semua hasil A–Z. Harga makanan lama dan foto tetap digunakan; pilihan lain memakai ilustrasi SVG kategori.
@@ -75,9 +73,9 @@ Area Last Call: Hemat Ekstra tetap terlihat sepanjang hari untuk pembeli, tetapi
 
 Data demo awal:
 
-- Nasi Ayam Geprek (Kantin A): Rp18.000 → Rp15.000, kuota 5.
-- Dimsum Mentai (Kantin B): Rp14.000 → Rp10.000, kuota 6.
-- Croissant Original (Kantin C): Rp12.000 → Rp9.000, kuota 5.
+- Nasi Ayam Geprek (Kantin): Rp18.000 → Rp15.000, kuota 5.
+- Dimsum Mentai (Kantin): Rp14.000 → Rp10.000, kuota 6.
+- Croissant Original (Kantin): Rp12.000 → Rp9.000, kuota 5.
 
 Pop-up "Hemat Ekstra dimulai!" hanya untuk pembeli, maksimal sekali sehari pada browser yang sama, dan hanya jika ada promo aktif dengan stok tersedia. Pop-up menampilkan maksimal tiga menu dan tombol tambah ke keranjang. Lihat semua promo membuka katalog dengan filter promo; filter Jenis, Mitra kampus, dan pencarian tetap dapat digabungkan. Nanti saja menutup pop-up tanpa memunculkannya lagi hari itu. Banner dan tombol filter tetap dapat digunakan saat jam promo.
 
@@ -99,7 +97,7 @@ State promos per ID menu berisi {active, mode, value, price, dailyStock, stock, 
 
 Pesanan memuat id, queueSequence, queueNumber, buyerName, buyerEmail, items [{cartId, menuId, tenant, name, price, qty, details?}], total, slot, status, createdAt, statusHistory. Nilai status internal: waiting/preparing/ready/completed. Field tenant dipertahankan untuk kompatibilitas data lama; seluruh tampilan memakai istilah mitra kampus.
 
-Data lama dimigrasikan tanpa mengubah akun, harga, dan nomor pesanan v2. Nama mitra lama dipetakan ke Kantin A/B/C; stok awal dikurangi sesuai pesanan makanan hari ini yang sudah ada. Format antrean lebih lama menggunakan cadangan antreless-demo-orders-v1. Data rusak tidak ditimpa otomatis.
+Data lama dimigrasikan tanpa mengubah akun, harga, dan nomor pesanan v2. Semua nama kantin lama (termasuk Kantin A/B/C) dipetakan ke Kantin pada riwayat dan keranjang. Stok serta promo yang sudah tersimpan tetap digunakan. Kapasitas kantin lama digabung dengan mengambil batas paling kecil; slot yang sebelumnya ditutup tetap ditutup. Admin dapat menyesuaikan kapasitas Kantin setelah migrasi. Untuk data lama tanpa inventaris, stok awal dikurangi sesuai pesanan makanan hari ini yang sudah ada. Format antrean lebih lama menggunakan cadangan antreless-demo-orders-v1. Data rusak tidak ditimpa otomatis.
 
 Seluruh data hanya simulasi lokal pada browser yang sama. Pembayaran, email pemulihan, dan pengiriman pesanan sungguhan belum tersedia.
 
