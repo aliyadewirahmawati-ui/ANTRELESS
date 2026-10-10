@@ -4,7 +4,17 @@ Prototipe pre-order dan pengambilan produk serta layanan kampus dengan palet pin
 
 ## Menjalankan
 
-Buka folder proyek di VS Code dan pilih index.html > Open with Live Server. Alternatif jika Python tersedia: `python -m http.server 5500`, lalu buka http://localhost:5500. Tidak membutuhkan npm, backend, atau API key. Fitur akun membutuhkan localhost dan penyimpanan browser aktif. Gunakan alamat situs yang sama; localhost dan 127.0.0.1 memiliki data browser berbeda.
+Buka folder proyek di VS Code dan pilih index.html > Open with Live Server. Alternatif jika Python tersedia: `python -m http.server 5500`, lalu buka http://localhost:5500. Tidak membutuhkan npm, backend, atau API key. Fitur akun membutuhkan HTTPS atau localhost dan penyimpanan browser aktif. Gunakan alamat situs yang sama; localhost dan 127.0.0.1 memiliki data browser berbeda.
+
+## GitHub Codespaces dan Vercel
+
+Untuk mengedit lewat browser, buka repository GitHub > Code > Codespaces > Create codespace on main. Di terminal Codespaces, jalankan `python3 -m http.server 5500 --bind 0.0.0.0`, lalu buka preview port 5500 dari tab Ports.
+
+Untuk menerbitkan situs, login Vercel dengan akun GitHub yang memiliki akses repository, lalu Add New > Project > import ANTRELESS > Deploy. File vercel.json memilih preset Other, melewati proses build, dan menyajikan file dari direktori proyek. Root Directory adalah direktori utama repository. Tidak membutuhkan environment variable.
+
+Setelah integrasi GitHub terhubung, perubahan yang di-commit dan di-push ke main memicu deployment berikutnya. Preview Codespaces dipakai saat pengembangan; alamat Vercel dipakai untuk membagikan situs.
+
+Deployment ini tetap berupa demo lokal: akun, stok, dan pesanan tersimpan di browser masing-masing dan tidak tersinkron antarperangkat.
 
 ## Akun
 

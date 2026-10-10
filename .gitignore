@@ -5,6 +5,7 @@
 .env
 .env.*
 !.env.example
+.vercel/
 
 # Dependencies and generated files
 node_modules/
