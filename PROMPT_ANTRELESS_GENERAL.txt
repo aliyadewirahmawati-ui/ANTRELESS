@@ -1,0 +1,256 @@
+Perbarui proyek Antreless yang sedang terbuka di VSCode. Baca struktur dan kode proyek terlebih dahulu, lalu implementasikan seluruh perubahan berikut pada file proyek.
+
+Antreless adalah website pemesanan makanan dan minuman untuk pelanggan umum, yang dapat digunakan oleh kantin mana saja. Website tidak dibatasi pada kampus, fakultas, institusi, atau lokasi tertentu. Pertahankan pencarian, keranjang beberapa item, halaman masuk pembeli/admin, dan desain responsif.
+
+1. PERTAHANKAN DESAIN DAN PALET TERBARU
+
+Pertahankan desain Antreless dari versi proyek terbaru dengan palet:
+- Navy: #102C46.
+- Toska: #12B99A.
+- Kuning keemasan: #FFBF32.
+- Putih: #FFFFFF.
+- Toska muda: #E8F8F4.
+
+Gunakan CSS variables yang sudah tersedia di style.css sebagai acuan seluruh komponen: katalog, keranjang, status pesanan, dashboard admin, formulir, notifikasi, dan promo Last Call.
+
+Pertahankan tata letak, tipografi, identitas merek, serta desain responsif yang sudah ada. Komponen baru harus mengikuti gaya komponen yang tersedia.
+
+Palet terbaru ini menggantikan seluruh instruksi lama yang menyebut tema pink.
+
+2. UBAH JUDUL BERANDA
+
+Ubah teks hero “Urus kebutuhan.” menjadi “Hemat Waktu.”
+
+Judul akhirnya:
+“Hemat Waktu.
+Tanpa drama antre.”
+
+Ketentuan:
+- Pertahankan teks “Tanpa drama antre.”
+- Pertahankan penekanan visual pada “drama antre.” seperti desain saat ini.
+- Pertahankan jenis huruf, hierarki judul, dan warna dari palet terbaru.
+- Sesuaikan pemenggalan baris secara responsif agar nyaman dibaca di desktop maupun HP tanpa overflow.
+- Gunakan teks HTML yang dapat diakses, bukan gambar berisi tulisan.
+- Sesuaikan paragraf pendukung menjadi: “Pesan makanan dan minuman dari kantin, lalu ambil saat pesananmu siap.”
+- Hapus penyebutan print tugas atau layanan dokumen pada hero.
+
+3. SESUAIKAN KATALOG DENGAN FOTO MENU
+
+Gunakan empat foto papan menu yang saya lampirkan sebagai referensi awal nama menu, varian, dan harga. Nama tempat pada papan menu hanya merupakan identitas sumber referensi, bukan nama atau batas cakupan website Antreless. Jangan gunakan nama tempat tersebut dalam judul, branding, katalog, maupun seed data aplikasi.
+
+- Ganti katalog contoh lama dengan makanan dan minuman dari foto.
+- Nama kantin dan lokasi pengambilan harus dapat diatur admin sesuai kantin yang menggunakan Antreless. Jika identitas kantin sebenarnya belum tersedia, gunakan nama netral "Kantin Demo" sebagai data contoh yang jelas ditandai, bukan identitas kantin nyata.
+- Jangan mengarang identitas gerai atau membagi penjual berdasarkan kategori makanan. Jika identitas gerai belum diketahui, gunakan satu "Kantin Demo" dahulu. Jangan menganggap seluruh menu referensi berasal dari satu penjual nyata; admin harus memverifikasi kepemilikan menu sebelum digunakan untuk transaksi nyata.
+- Struktur data tetap mendukung beberapa kantin di berbagai lokasi: setiap produk memiliki kantin_id, dan setiap kantin memiliki nama serta lokasi pengambilan. Nama kantin, lokasi, dan kewenangan admin tidak boleh dikunci ke satu kampus atau institusi.
+- Lokasi pengambilan yang belum diketahui ditandai “Detail lokasi belum diisi”, lalu dapat dilengkapi admin.
+- Urutkan kategori dan menu secara alfabetis.
+- Pertahankan filter “Semua” sebagai pilihan pertama.
+- Hitung jumlah pilihan menu dan kantin pada halaman awal dari data aktual. Jangan mempertahankan angka lama secara hardcoded.
+
+Berikut transkripsi awal untuk membantu pengisian. Cocokkan kembali dengan foto sebelum membuat seed data.
+
+Mie:
+- Mie Ayam Polos — Rp12.000.
+- Mie Ayam Bakso — Rp15.000.
+- Indomie Rebus — Rp6.000.
+- Indomie Goreng — Rp6.000.
+- Indomie Rebus + Telur — Rp10.000.
+- Indomie Goreng + Telur — Rp10.000.
+- Pop Mie — Rp8.000.
+
+Nasi goreng:
+- Nasi Goreng + Telur — Rp12.000.
+- Nasi Goreng Cikur + Telur — Rp12.000.
+- Nasi Goreng Sambal Matah + Telur — Rp12.000.
+- Nasi Goreng Sosis + Telur — Rp15.000.
+- Nasi Goreng Ayam + Telur — Rp15.000.
+- Nasi Goreng Saus Keju + Telur — Rp13.000.
+- Nasi Goreng Spesial — Rp18.000.
+- Nasi Goreng Korea — Rp13.000.
+
+Makanan lainnya:
+- Aneka Sajian Prasmanan — mulai Rp8.000.
+- Lontong Kari — Rp12.000.
+- Ayam Geprek + Nasi — Rp15.000.
+- Ayam Katsu + Nasi — Rp15.000.
+- Ayam Pop Corn + Nasi — Rp15.000.
+- Aneka Seblak — mulai Rp8.000.
+- Ikan Nila/Kembung + Nasi — Rp15.000, dengan pilihan jenis ikan.
+- Nasi Kuning Komplit — Rp12.000.
+- Nasi Uduk Komplit — Rp12.000.
+- Lotek/Karedok — Rp12.000, dengan pilihan jenis makanan.
+- Lotek/Karedok + Nasi — Rp15.000.
+- Karedok Lontong Tahu — Rp16.000.
+- Ketoprak — Rp12.000.
+- Rujak Ulek — Rp16.000.
+
+Papan soto dan ayam:
+- Soto Ayam + Nasi.
+- Ayam Sambal Cikur + Nasi.
+- Ayam Sadas + Nasi.
+- Ayam Serundeng + Nasi.
+- Ayam Teriyaki + Nasi.
+- Ayam Saus Keju + Nasi.
+- Ayam Bakar + Nasi.
+
+Harga Ayam Teriyaki + Nasi terbaca Rp15.000. Periksa harga menu lainnya pada foto; jangan otomatis menyamakan harga jika tidak terbaca.
+
+Susu murni:
+- Original — Rp8.000.
+- Melon, Coklat, Strawberry, Tiramisu, Vanilla, Orange, dan Lychee — masing-masing Rp10.000.
+
+Minuman lainnya:
+- Jus Mangga, Jus Strawberry, Jus Jambu, Jus Alpukat, dan Jus Sirsak — masing-masing Rp10.000.
+- Lychee Tea/Peach Tea — Rp8.000, dengan pilihan rasa.
+- Bubble Gum/Cotton Candy — Rp10.000, dengan pilihan rasa.
+- Thai Tea/Green Tea — Rp8.000, dengan pilihan jenis.
+- Tambahkan minuman kemasan dari foto setelah memeriksa merek, ukuran, dan harga yang terbaca.
+
+Ketentuan data:
+- Jika tulisan, harga, atau ukuran tidak jelas, catat sebagai “Perlu konfirmasi” di dashboard admin. Jangan mengarangnya.
+- Menu dengan harga belum terverifikasi belum dapat di-checkout.
+- Untuk prasmanan dan seblak yang tertulis “mulai”, jangan memperlakukan harga awal sebagai harga final semua pilihan. Sediakan konfigurasi pilihan dan harga oleh admin; aktifkan pemesanan setelah pilihan tersebut tersedia.
+- Menu dengan pilihan rasa/jenis harus menyimpan pilihan pembeli dalam keranjang dan pesanan.
+- Setiap pilihan yang memiliki harga atau stok berbeda harus divalidasi secara terpisah.
+- Gunakan foto makanan yang sesuai atau placeholder kategori. Jangan memasangkan foto makanan yang berbeda.
+- Pencarian harus bekerja dengan nama menu, kategori, dan nama kantin.
+
+4. HAPUS LAYANAN KAMPUS
+
+Hapus dari katalog aktif dan seluruh alur pemesanan:
+- Fotokopi & Print Kampus.
+- Fotokopi, Print Dokumen, Scan Dokumen, Jilid Spiral, dan Laminating.
+- Kategori “Layanan Kampus”.
+- Formulir unggah file dan formulir layanan dokumen.
+- Teks promosi tentang print tugas atau layanan dokumen.
+
+Sesuaikan ringkasan, navigasi, pencarian, kartu kantin, dan penjelasan cara pesan menjadi makanan dan minuman.
+
+Jika keranjang lama berisi produk yang sudah dihapus, keluarkan item tersebut dengan pemberitahuan yang jelas. Jangan menghapus riwayat pesanan nyata secara diam-diam.
+
+5. UBAH PENGAMBILAN BERDASARKAN KESIAPAN KANTIN
+
+Pembeli tidak perlu memilih slot 10 menit saat checkout. Hilangkan kewajiban satu slot pengambilan untuk seluruh isi keranjang dan sesuaikan seluruh teks yang masih menjelaskan alur slot lama.
+
+Alur utama:
+- Menunggu konfirmasi: pesanan berhasil tersimpan dan menunggu tindakan admin.
+- Sedang diproses: kantin menerima dan mulai menyiapkan.
+- Siap diambil: admin menyatakan makanan sudah siap.
+- Selesai: admin mengonfirmasi makanan sudah diserahkan.
+
+Sediakan pembatalan dengan alasan apabila pesanan tidak dapat dipenuhi. Status tidak berubah otomatis hanya karena waktu berlalu.
+
+Tampilan pembeli:
+- Nomor antrean.
+- Nama kantin dan lokasi pengambilan.
+- Rincian menu, varian, jumlah, dan total.
+- Status terkini dan waktu perubahan status.
+- Estimasi siap jika sudah diisi admin.
+- Pesan “Pesananmu sedang disiapkan” saat diproses.
+- Pesan “Pesananmu siap diambil di [nama kantin]” ketika siap.
+- Alasan pembatalan jika pesanan dibatalkan.
+
+Estimasi dari admin harus diberi label perkiraan, bukan janji waktu pasti. Admin dapat memperbaruinya saat kantin sedang ramai.
+
+Jika keranjang memuat beberapa kantin, pecah checkout menjadi pesanan per kantin dengan nomor antrean, status, subtotal, dan estimasi masing-masing. Pesanan yang siap pada satu kantin tidak boleh membuat pesanan kantin lain ikut berstatus siap.
+
+Pertahankan jam operasional awal 06.30–17.00 WIB sebagai konfigurasi yang dapat diubah admin per kantin. Admin dapat menjeda penerimaan pesanan baru saat kewalahan. Pembatasan jam dan penerimaan pesanan juga divalidasi pada backend.
+
+6. HUBUNGKAN PEMBELI DAN ADMIN DENGAN DATABASE BERSAMA
+
+Periksa penyebab pesanan pembeli tidak muncul di admin. Jangan menyelesaikannya hanya dengan event localStorage atau penyegaran halaman dalam browser yang sama.
+
+Jika sudah ada backend, gunakan dan perbaiki backend tersebut. Jika belum ada, implementasikan Supabase untuk:
+- Database bersama.
+- Supabase Auth untuk akun email/password.
+- Supabase Realtime untuk pesanan, status, serta stok.
+
+localStorage boleh digunakan untuk preferensi tampilan atau draft keranjang, tetapi bukan sumber utama akun, pesanan, stok, atau status. Sesi login dikelola oleh sistem autentikasi.
+
+Ketentuan akun:
+- Halaman masuk tetap satu; pengguna diarahkan berdasarkan kewenangan setelah login.
+- Pendaftaran umum hanya membuat akun pembeli.
+- Kewenangan admin ditetapkan melalui mekanisme tepercaya di backend.
+- Pembeli tidak dapat mengubah role sendiri.
+- Jangan menentukan admin hanya berdasarkan email yang dikirim frontend.
+- Jangan menyimpan password sendiri dalam tabel profil atau localStorage.
+- Jangan memakai password admin demo yang ditanam di JavaScript sebagai autentikasi produksi.
+- Sediakan petunjuk penetapan akun admin yang sudah saya gunakan.
+- Akun demo lama tidak otomatis menjadi akun Supabase. Jelaskan proses pendaftaran akun baru.
+- Pisahkan data demo lama dari data akun dan transaksi nyata.
+
+Sediakan tabel yang diperlukan untuk profil, kantin, menu/varian, pesanan, item pesanan, dan riwayat status. Simpan nama, varian, serta harga item saat checkout agar riwayat tidak berubah ketika katalog diperbarui.
+
+Terapkan Row Level Security:
+- Pembeli hanya dapat melihat pesanan miliknya.
+- Pembeli tidak dapat mengubah harga final, stok, role, atau status pesanan.
+- Admin dapat melihat dan mengelola pesanan sesuai kewenangannya.
+- Secret/service-role key tidak boleh masuk ke kode frontend atau repository.
+
+7. CHECKOUT DAN STOK HARUS KONSISTEN
+
+- Hitung harga dan total dari data backend, bukan mempercayai nilai frontend.
+- Validasi varian, ketersediaan, stok, dan status kantin saat checkout.
+- Simpan pesanan dan kurangi stok dalam satu transaksi database.
+- Jika checkout mencakup beberapa kantin, buat seluruh pesanan terkait secara konsisten; kegagalan tidak boleh meninggalkan checkout sebagian.
+- Gunakan idempotency key agar klik dua kali atau retry jaringan tidak membuat pesanan ganda.
+- Buat nomor antrean per kantin per hari secara atomik agar tidak bentrok.
+- Tampilkan berhasil hanya setelah backend mengonfirmasi pesanan tersimpan.
+- Jika gagal, tampilkan pesan yang jelas dan pertahankan keranjang.
+- Cegah stok negatif ketika dua pembeli memesan bersamaan.
+- Batalkan pesanan dan pulihkan stok hanya sesuai aturan yang ditetapkan; pemulihan tidak boleh terjadi dua kali.
+- Validasi perubahan status dan kewenangan admin pada backend.
+
+Pertahankan pengelolaan stok, menu habis, dan menu tidak tersedia oleh admin.
+
+Pertahankan desain promo Last Call pukul 15.00–17.00 WIB dengan palet terbaru. Promo harus mengacu pada menu baru dan dikonfigurasi admin. Nonaktifkan referensi promo untuk menu lama yang sudah dihapus.
+
+Jangan mengarang diskon atau stok promo dari foto. Harga, periode, dan stok promo harus divalidasi pada backend serta tidak menyebabkan stok terjual melebihi persediaan.
+
+8. SINKRONISASI DAN DASHBOARD ADMIN
+
+- Pesanan baru muncul pada dashboard admin dari database yang sama.
+- Perubahan status admin muncul pada Pesanan Saya milik pembeli tanpa refresh manual.
+- Saat koneksi kembali tersambung atau halaman dibuka lagi, ambil ulang data agar tidak kehilangan pembaruan.
+- Berikan fallback polling yang wajar jika koneksi Realtime gagal.
+- Bersihkan subscription saat logout dan pergantian akun.
+
+Dashboard admin menyediakan:
+- Daftar pesanan berdasarkan kantin dan status.
+- Identitas pembeli yang diperlukan, nomor antrean, rincian item, dan waktu pemesanan.
+- Tombol Terima/Proses, Siap diambil, Selesai, serta pembatalan dengan alasan.
+- Input estimasi siap dan catatan.
+- Pengelolaan menu, harga, varian, stok, jam buka, lokasi ambil, serta jeda pesanan baru.
+- Penanda menu yang datanya masih perlu dikonfirmasi.
+
+Gunakan notifikasi di dalam aplikasi. Jangan menjanjikan notifikasi email atau push saat aplikasi ditutup jika fitur tersebut belum diimplementasikan.
+
+9. SETUP DAN PENGUJIAN
+
+Kerjakan kode, migrasi database, kebijakan akses, seed menu, dan dokumentasi terlebih dahulu.
+
+Sediakan:
+- .env.example tanpa kredensial.
+- Migrasi SQL dan petunjuk menjalankannya.
+- Panduan konfigurasi Supabase Auth, akun admin, Realtime, serta environment variable untuk Vercel.
+- Perintah menjalankan dan menguji proyek.
+- Daftar nama/harga menu yang masih perlu dikonfirmasi.
+
+Uji dengan sesi dan perangkat terpisah:
+1. Pembeli checkout dari HP atau browser A.
+2. Admin membuka dashboard dari laptop atau browser B.
+3. Pesanan benar-benar muncul di admin.
+4. Admin mengubah status menjadi diproses, siap diambil, lalu selesai.
+5. Pembeli melihat pembaruan pada setiap tahap.
+6. Pembeli lain tidak dapat membaca pesanan tersebut.
+7. Refresh dan login ulang tetap menampilkan pesanan dari database.
+8. Dua pembeli berebut stok terakhir tidak menyebabkan overselling.
+9. Klik checkout berulang tidak membuat pesanan ganda.
+10. Penghapusan layanan kampus tidak meninggalkan filter, formulir, atau item keranjang yang rusak.
+11. Pilihan rasa/jenis tersimpan dengan benar dan harga sesuai pilihan.
+12. Judul beranda menjadi “Hemat Waktu. Tanpa drama antre.” tanpa overflow pada desktop dan HP.
+13. Seluruh komponen mengikuti palet navy, toska, kuning keemasan, dan putih dari CSS variables terbaru.
+
+Jika konfigurasi Supabase belum tersedia, jelaskan tepatnya apa yang perlu saya isi setelah implementasi disiapkan. Jangan menampilkan transaksi lokal sebagai pesanan online yang berhasil.
+
+Di akhir, laporkan perubahan, hasil pengujian yang benar-benar dijalankan, dan langkah konfigurasi yang masih diperlukan.

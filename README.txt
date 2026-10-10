@@ -1,118 +1,143 @@
-﻿# Antreless — produk & layanan kampus
+# Antreless — Hemat Waktu. Tanpa drama antre.
 
-Prototipe pre-order dan pengambilan produk serta layanan kampus dengan palet navy, toska, kuning, dan putih, peran admin/pembeli, stok, dan kapasitas antrean lokal.
+Website makanan dan minuman untuk pelanggan umum dan kantin mana saja. Navy #102C46, toska #12B99A, kuning #FFBF32, putih #FFFFFF, dan toska muda #E8F8F4. CSS variables utama ada di style.css; src/overrides.css mengikuti desain tersebut.
+
+## Perubahan
+
+- Hero baru dan teks umum tanpa batas institusi/lokasi.
+- 45 menu, 58 pilihan dari transkripsi pengguna. Satu Kantin Demo yang dapat diubah; database mendukung banyak kantin.
+- Empat foto belum tersedia pada lampiran implementasi. Menu awal nonaktif, harga belum terverifikasi, stok 0, tanpa promo otomatis. Daftar konfirmasi: MENU_PERLU_KONFIRMASI.md.
+- Prasmanan/seblak tidak menggunakan harga mulai Rp8.000 sebagai harga final. Enam menu ayam/soto belum memiliki harga; minuman kemasan menunggu merek/ukuran/harga.
+- Placeholder kategori untuk katalog; foto hero hanya ilustrasi.
+- Layanan dokumen dan slot wajib 10 menit dihapus dari alur aktif.
+- Supabase Auth, database bersama, Realtime dan polling menggantikan simulasi bisnis localStorage.
+- Checkout menghasilkan satu pesanan per kantin dengan antrean/status/subtotal/perkiraan siap sendiri.
+
+Tanpa konfigurasi Supabase: hanya katalog referensi, login/checkout dinonaktifkan. Transaksi lokal tidak ditampilkan sebagai pesanan online.
 
 ## Menjalankan
 
-Buka folder proyek di VS Code dan pilih index.html > Open with Live Server. Alternatif jika Python tersedia: `python -m http.server 5500`, lalu buka http://localhost:5500. Tidak membutuhkan npm, backend, atau API key. Fitur akun membutuhkan HTTPS atau localhost dan penyimpanan browser aktif. Gunakan alamat situs yang sama; localhost dan 127.0.0.1 memiliki data browser berbeda.
+Node.js 22+ dan npm diperlukan. Build menggunakan esbuild-wasm agar dapat berjalan pada Windows yang memblokir modul native. Pengujian lokal tidak membutuhkan Docker.
 
-## GitHub Codespaces dan Vercel
+1. npm install (atau npm ci setelah lockfile tersedia).
+2. Salin .env.example ke .env.local. Isi konfigurasi publik bila Supabase tersedia.
+3. npm run dev -> http://127.0.0.1:5500. Simpan source dan refresh setelah build otomatis selesai.
+4. npm run build -> dist/.
+5. npm run preview -> preview dist/ pada port 5500 (ubah melalui PORT bila perlu).
 
-Untuk mengedit lewat browser, buka repository GitHub > Code > Codespaces > Create codespace on main. Di terminal Codespaces, jalankan `python3 -m http.server 5500 --bind 0.0.0.0`, lalu buka preview port 5500 dari tab Ports.
+Gunakan server HTTP, bukan file:// atau Live Server pada source index.html: import Supabase harus dibundel.
 
-Untuk menerbitkan situs, login Vercel dengan akun GitHub yang memiliki akses repository, lalu Add New > Project > import ANTRELESS > Deploy. File vercel.json memilih preset Other, melewati proses build, dan menyajikan file dari direktori proyek. Root Directory adalah direktori utama repository. Tidak membutuhkan environment variable.
+## Setup Supabase
 
-Setelah integrasi GitHub terhubung, perubahan yang di-commit dan di-push ke main memicu deployment berikutnya. Preview Codespaces dipakai saat pengembangan; alamat Vercel dipakai untuk membagikan situs.
+1. Buat proyek Supabase atau gunakan proyek yang tersedia. Migrasi dirancang untuk tabel publik baru; tinjau konflik nama jika database sudah memiliki tabel dengan nama yang sama.
+2. SQL Editor: jalankan supabase/migrations/202610100001_shared_orders.sql secara utuh. Migrasi bersifat transaksional.
+3. Opsional: jalankan supabase/seed.sql. Seed idempotent dan tidak menimpa perubahan admin atau riwayat nyata saat diulang.
+4. Project Settings / API Keys: ambil Project URL dan publishable key (legacy anon juga didukung).
+5. .env.local:
+   VITE_SUPABASE_URL=https://PROJECT_ID.supabase.co
+   VITE_SUPABASE_PUBLISHABLE_KEY=PUBLIC_PUBLISHABLE_KEY
+6. Restart dev/build. Jangan gunakan secret/service-role. Build hanya memasukkan konfigurasi publik dan tidak menyalin .env ke dist/.
 
-Deployment ini tetap berupa demo lokal: akun, stok, dan pesanan tersimpan di browser masing-masing dan tidak tersinkron antarperangkat.
+Dokumentasi key: https://supabase.com/docs/guides/getting-started/api-keys
 
-## Akun
+## Auth dan akun admin
 
-Satu halaman login tanpa pilihan peran:
+Aktifkan Email/Password pada Supabase Auth. Atur Site URL ke domain produksi serta Redirect URLs untuk domain produksi dan localhost yang dipakai. Pendaftaran umum menghasilkan buyer; trigger mengabaikan role dari metadata signup.
 
-- Admin: aliyadewirahmawati@gmail.com / admin. Nama Admin Antreless, langsung masuk dashboard. Email ini tidak dapat dipakai untuk mendaftar pembeli.
-- Buat akun: selalu menjadi pembeli, kata sandi minimal 6 karakter.
-- Jelajahi dengan akun demo: Pembeli Demo, email pembeli.demo@antreless.local / demo123.
-- Ingat saya: hingga 30 hari. Tanpa centang: refresh pada tab yang sama, maksimal 12 jam. Sesi login terakhir disimpan bersama di browser; tab yang sudah terbuka tetap memakai akun aktifnya sampai logout atau refresh.
-- Keluar kembali ke halaman login. Akun, keranjang, dan pesanan tersimpan. Kata sandi disimpan sebagai hash PBKDF2.
+Buat akun baru dan konfirmasikan email sesuai konfigurasi Supabase. Akun/password demo lama tidak otomatis menjadi akun Supabase. Password tidak disimpan sendiri dalam profil/localStorage; sesi ditangani SDK Auth.
 
-## Katalog dan mitra kampus
+Untuk admin yang sebelumnya dipakai, daftarkan aliyadewirahmawati@gmail.com sebagai pengguna Supabase dengan password baru pilihan pemilik. Jangan gunakan password demo versi lama. Setelah terdaftar, pemilik proyek menjalankan SQL tepercaya:
 
-50 pilihan produk & layanan dari dua mitra kampus:
+do $$
+declare admin_uid uuid;
+begin
+  select id into admin_uid from auth.users where lower(email)=lower('aliyadewirahmawati@gmail.com');
+  if admin_uid is null then raise exception 'Daftarkan akun Supabase terlebih dahulu'; end if;
+  update public.profiles set role='admin' where id=admin_uid;
+  insert into public.kantin_admins(kantin_id,user_id)
+    select id,admin_uid from public.kantin where id='00000000-0000-4000-8000-000000000001'
+    on conflict do nothing;
+end $$;
 
-- Kantin: 45 menu makanan dan minuman, termasuk Aneka Nasi, Bakmi, Bakso dan Soto, Jajanan, Minuman, dan Roti.
-- Fotokopi & Print Kampus: Fotokopi, Print Dokumen, Scan Dokumen, Jilid Spiral, Laminating.
+Tanpa seed, admin dapat membuat kantin baru dari dashboard dan otomatis menjadi admin kantin tersebut. Untuk akses kantin lain, pemilik memasukkan pasangan kantin_id/user_id pada kantin_admins melalui SQL Editor. Role admin tidak memberi akses ke semua kantin. Frontend tidak menentukan role berdasarkan email.
 
-Enam kategori makanan tetap tersedia: Aneka Nasi (8), Bakmi (5), Bakso dan Soto (6), Jajanan (8), Minuman (9), Roti (9). Panel Filter produk berisi chip Jenis (Semua menjadi pilihan pertama, ditambah Layanan Kampus), tanpa dropdown Mitra kampus. Pencarian meliputi nama, deskripsi, kategori, serta mitra kampus dan dapat digabungkan dengan chip Jenis. Kartu mitra kampus tetap dapat diklik untuk melihat produknya. Semua hasil A–Z. Harga makanan lama dan foto tetap digunakan; pilihan lain memakai ilustrasi SVG kategori.
+Halaman masuk satu untuk pembeli/admin. “Lupa kata sandi” menggunakan Supabase Auth; ini pemulihan akun, bukan notifikasi pesanan. Tidak ada janji email/push status pesanan saat aplikasi ditutup.
 
-## Detail layanan
+## Mengaktifkan menu nyata
 
-Formulir wajib diisi sebelum layanan masuk ke tas. Detail disimpan dan ditampilkan pada keranjang, konfirmasi checkout, Pesanan Saya, dan dashboard admin. Jumlah +/− pada layanan berarti jumlah paket dengan detail yang sama; detail berbeda menjadi baris terpisah.
+1. Ubah nama/lokasi/jam kantin dan matikan penanda Kantin Demo. Jam awal 06.30–17.00 WIB; buka harus sebelum tutup pada hari yang sama.
+2. Verifikasi nama/kepemilikan menu, lalu centang verifikasi pada editor menu.
+3. Isi pilihan rasa/jenis, harga final, stok nyata, konfirmasi harga, dan aktifkan pilihan.
+4. Prasmanan/seblak: nonaktifkan pilihan “Pilihan belum dikonfigurasi”; tambahkan pilihan konkret dengan harga final.
+5. Aktifkan menu serta “Terima pesanan baru” setelah data siap. Jeda bila kantin kewalahan.
 
-Harga simulasi per paket:
+Kategori/nama menu diurut A–Z, filter Semua pertama. Pencarian meliputi nama/kategori/kantin. Angka hero berasal dari data aktual, termasuk menu yang masih perlu konfirmasi. Harga referensi bukan harga checkout sampai dikonfirmasi.
 
-- Fotokopi: lembar × rangkap × Rp500 (hitam-putih) atau Rp1.500 (warna).
-- Print Dokumen: Rp2.000 (hitam-putih) atau Rp5.000 (warna) per file/rangkap. Pilihan satu/dua sisi dicatat. Hanya nama file disimpan; isi dokumen tidak dibaca, diunggah, atau dikirim ke server.
-- Scan Dokumen: halaman × Rp1.000; format PDF/JPG.
-- Jilid Spiral: Rp8.000 per 100 halaman atau bagiannya × rangkap; pilihan warna cover.
-- Laminating: lembar × Rp4.000 (A4) atau Rp8.000 (A3).
+## Transaksi, status, stok
 
-Jumlah lembar/halaman 1–5.000, rangkap 1–100, maksimal 100 paket per baris layanan. Angka wajib bulat positif. Semua harga masih simulasi.
+Database menghitung harga/total, memeriksa varian, verifikasi, stok, jam WIB dan jeda kantin. Pesanan beberapa kantin dan pengurangan stok ada dalam satu transaksi: gagal satu kantin membatalkan seluruh checkout. Lock konsisten, idempotency key, dan counter per kantin per tanggal WIB mencegah duplikasi, stok negatif, dan nomor bentrok.
 
-## Jam operasional, slot dan stok
+Nomor ANT-001 dst dihitung per kantin/hari. Nama kantin/lokasi/menu/varian dan harga disimpan sebagai snapshot, sehingga pembaruan katalog tidak mengubah struk lama. Retry permintaan sama mengembalikan pesanan yang sama. Key sama dengan item/jumlah berbeda ditolak. Tas kosong hanya setelah server mengonfirmasi penyimpanan; error mempertahankan draft.
 
-Operasional 06.30–17.00. Ada 63 slot 10 menit, dari 06.30–06.40 sampai 16.50–17.00, untuk pengambilan hari ini (WIB). Pembeli memilih satu slot bersama untuk semua mitra dalam tas. Slot harus tersedia pada setiap mitra yang dipilih. Slot ditutup/penuh tidak bisa dipilih; badge membedakan tersedia, hampir penuh, penuh, ditutup.
+Menunggu konfirmasi -> Sedang diproses -> Siap diambil -> Selesai. Status berubah hanya oleh admin berwenang, bukan waktu. Perkiraan kesiapan dapat diperbarui dan diberi label perkiraan; riwayat perubahan disimpan.
 
-Kapasitas awal 5 pesanan per mitra per slot. Satu checkout memakai satu kapasitas pada setiap mitra yang berpartisipasi, berapa pun jumlah itemnya. Semua pesanan hari yang sama termasuk yang selesai dihitung sebagai penggunaan slot. Hampir penuh berarti sisa kapasitas tidak lebih dari 20% (minimal satu). Admin dapat mengubah kapasitas standar, kapasitas slot tertentu, serta membuka/menutup slot. Perubahan berlaku untuk pemesanan baru; pesanan yang sudah diterima tetap tersimpan.
+Pembatalan wajib memiliki alasan. Pesanan Menunggu mengembalikan stok sekali; setelah diproses/siap stok makanan tidak dikembalikan otomatis. Kuota promo kembali hanya pada tanggal promo yang sama. Selesai/Dibatalkan tidak dapat diubah lagi.
 
-Stok awal makanan/produk fisik: 20 per item. Semua layanan dokumen termasuk Fotokopi memakai status aktif tanpa stok angka. Admin dapat tambah/kurang stok, memasukkan angka 0–100.000, dan menandai produk/layanan Tidak tersedia. Stok 0 otomatis Habis hari ini; 1–5 Tersisa sedikit; >5 Tersedia. Penambahan stok pada item nonaktif tetap memerlukan aktivasi kembali.
+## Last Call
 
-Jumlah keranjang tidak boleh melebihi stok. Saat data berubah, item habis/nonaktif dihapus dari tas dan jumlah yang berlebih dikurangi dengan pesan yang jelas. Checkout memeriksa ulang stok dan kapasitas terbaru di dalam penguncian sebelum menyimpan. Pesanan, pengurangan stok, dan nomor ANT disimpan dalam satu penulisan sehingga kegagalan penyimpanan tidak menghabiskan stok atau nomor. Web Locks mencegah benturan antar-tab pada browser yang mendukungnya.
+Banner/kartu pratinjau tetap terlihat di luar jam promo; tidak ada diskon/stok bawaan. Admin mengatur promo per varian terverifikasi, harga di bawah normal, periode dalam 15.00–17.00 WIB, kuota dan sisa kuota. Pembelian promo mengurangi stok fisik dan kuota promo bersamaan. Kuota berganti pada transaksi pertama hari berikutnya, tetap dibatasi stok fisik aktual. Promo yang menjadi tidak valid setelah edit varian dinonaktifkan. Backend selalu memvalidasi harga/periode/stok terbaru.
 
-## Antrean dan admin
+## RLS dan sinkronisasi
 
-Nomor ANT-001, ANT-002, dan seterusnya terus berurutan setelah refresh dan berganti hari. Setelah checkout, nomor dan detail konfirmasi tampil jelas dan pembeli diarahkan ke Pesanan Saya. Pembeli hanya melihat pesanan miliknya dan tidak dapat mengubah status.
+Katalog dapat dibaca publik. Pembeli hanya melihat profil/pesanan/item/riwayat sendiri. Admin hanya mengelola kantin yang ditugaskan. Tidak ada izin INSERT/UPDATE/DELETE langsung dari client; fungsi RPC memeriksa Auth, role, status, dan kewenangan. Security definer memakai search_path kosong, schema berkualifikasi, serta EXECUTE terbatas.
 
-Admin melihat semua pesanan pada browser/alamat situs yang sama, ringkasan hari ini WIB, daftar menurut nomor dan waktu pembuatan, filter status, nama pembeli, item, total, serta slot. Status berurutan: Menunggu → Sedang disiapkan → Siap diambil → Selesai. Perubahan muncul otomatis di tab pembeli.
+Migrasi menambahkan tabel ke publication supabase_realtime jika tersedia. Periksa Database / Replication atau Realtime: public.kantin, menu, menu_variants, promos, orders, order_items, order_status_history, kantin_admins dan profiles harus diterbitkan. Jangan mengekspos schema private pada Data API.
 
-Reset data demo hari ini memerlukan konfirmasi di dashboard: stok kembali 20, layanan aktif, kapasitas standar 5, pengaturan khusus dihapus, semua slot dibuka, tiga promo Last Call contoh dipulihkan, dan pesanan hari ini dihapus. Akun, keranjang, riwayat hari sebelumnya, serta nomor ANT terakhir dipertahankan. Stok tidak direset otomatis saat berganti hari; gunakan tombol admin untuk memulai ulang demo.
+Subscription mengambil ulang data ketika ada perubahan. Channel dibersihkan saat logout/pergantian akun. Polling 15 detik menjadi fallback, plus refetch saat online/halaman kembali terlihat. Database tetap sumber bisnis bersama.
 
-## Last Call: Hemat Ekstra
+Referensi:
+https://supabase.com/docs/guides/database/postgres/row-level-security
+https://supabase.com/docs/guides/realtime/postgres-changes
+https://supabase.com/docs/reference/javascript/auth
 
-Area Last Call: Hemat Ekstra tetap terlihat sepanjang hari untuk pembeli, tetapi pemesanan harga promo hanya dibuka setiap hari 15.00 sampai sebelum 17.00 WIB. Layanan Fotokopi & Print Kampus tidak termasuk. Jam mengikuti waktu browser yang dikonversi ke WIB; tidak ada tombol untuk memaksakan jam promo pada aplikasi. Section khusus sebelum daftar menu menampilkan banner navy/toska dengan aksen kuning, ilustrasi makanan, dan maksimal tiga kartu menu. Di luar jam promo, kartu menjadi pratinjau dengan tombol nonaktif dan countdown menuju pukul 15.00 berikutnya. Pada jam promo, tombol dapat digunakan sesuai stok dan countdown menunjukkan waktu hingga 17.00. Jika belum ada promo aktif, area tetap terlihat dengan pesan bahwa pilihan promo sedang disiapkan. Kartu tersusun horizontal di desktop dan dapat digeser di HP. Menu stok promo tersedia diprioritaskan; promo aktif yang habis tetap menampilkan "Promo habis".
+## Data demo lama
 
-Data demo awal:
+Data lama tidak diubah menjadi akun/transaksi nyata. Key lama tetap disimpan pada browser asal agar riwayat tidak dihapus diam-diam. Draft lama tidak dipakai untuk checkout online, layanan dokumen tidak masuk alur aktif, dan ada pemberitahuan ketika data lama terdeteksi. Draft baru disimpan per Auth user, direkonsiliasi jika varian dihapus. localStorage aplikasi hanya untuk draft/preferensi; sesi Auth dikelola SDK.
 
-- Nasi Ayam Geprek (Kantin): Rp18.000 → Rp15.000, kuota 5.
-- Dimsum Mentai (Kantin): Rp14.000 → Rp10.000, kuota 6.
-- Croissant Original (Kantin): Rp12.000 → Rp9.000, kuota 5.
+## Vercel
 
-Pop-up "Hemat Ekstra dimulai!" hanya untuk pembeli, maksimal sekali sehari pada browser yang sama, dan hanya jika ada promo aktif dengan stok tersedia. Pop-up menampilkan maksimal tiga menu dan tombol tambah ke keranjang. Lihat semua promo membuka katalog dengan filter promo; filter Jenis dan pencarian tetap dapat digabungkan. Nanti saja menutup pop-up tanpa memunculkannya lagi hari itu. Banner dan tombol filter tetap dapat digunakan saat jam promo.
+Build Command: npm run build. Output Directory: dist. vercel.json sudah sesuai. Source SQL, catatan lokal, dokumentasi, test artifacts dan .env tidak disajikan dari output root.
 
-Admin memilih menu kantin, menetapkan harga promo atau diskon 1–99%, stok promo 0–100.000, dan status aktif. Harga harus lebih rendah dari harga normal. Aktivasi memerlukan menu aktif dan stok promo >0. Stok promo terpisah dari stok reguler dan dapat berbeda jumlahnya; promo tetap dapat dibeli ketika stok reguler nol. Setiap pergantian hari, kuota promo diperbarui dari dailyStock secara independen. Menonaktifkan menu keseluruhan juga menonaktifkan penjualannya melalui promo.
+Di Vercel Project Settings / Environment Variables, isi VITE_SUPABASE_URL serta VITE_SUPABASE_PUBLISHABLE_KEY untuk Production/Preview/Development yang dipakai. Tambahkan domain deployment pada Auth URL Supabase, lalu redeploy agar env masuk ke build. Secret/service-role tidak diperlukan di frontend.
 
-Checkout promo hanya mengurangi stok promo, sedangkan pembelian harga normal hanya mengurangi stok reguler. Pesanan, nomor antrean, dan kedua stok disimpan dalam satu penulisan atomik. Menu yang sama dapat masuk keranjang dengan harga promo dan harga normal sebagai dua baris terpisah, masing-masing dibatasi stoknya. Promo habis hilang dari pop-up, menampilkan "Promo habis" pada section/katalog, dan menu tetap dapat dipesan dengan harga normal jika stok reguler tersedia. Admin melihat jumlah checkout yang mengandung menu promo pada hari ini WIB.
-
-Slot promo harus belum berakhir dan berakhir paling lambat 17.00 (slot terakhir 16.50–17.00). Slot yang sudah lewat nonaktif. Pada 17.00, pop-up ditutup dan tombol promo dinonaktifkan otomatis; section beserta pratinjau harga promo tetap terlihat, sedangkan harga pada katalog utama kembali normal. Item promo kedaluwarsa, dinonaktifkan, atau berubah harga dihapus dari keranjang dengan pesan; tidak otomatis diubah menjadi pembelian harga normal. Untuk harga normal, pembeli menambahkan menu kembali. Riwayat pesanan yang telah dibuat tetap mempertahankan harga dan badge Hemat Ekstra.
-
-State promos per ID menu berisi {active, mode, value, price, dailyStock, stock, stockDate}. Item promo pada keranjang/pesanan menambahkan {promotion: 'last-call', promoDate, originalPrice}; price menyimpan harga promo yang disepakati. Data operasional lama tanpa promos ditambahkan promo demo sekali tanpa mengubah pesanan sebelumnya.
-
-## Penyimpanan lokal
-
-- antreless-demo-accounts-v1: akun, nama, email, role, salt/hash kata sandi.
-- antreless-demo-session-v1: sesi login, role, preferensi Ingat saya, ID sesi dan kedaluwarsa. sessionStorage hanya menyimpan penanda tab.
-- antreless-last-call-popup-v1: tanggal WIB terakhir pop-up ditampilkan, bersama untuk seluruh akun pembeli pada browser/alamat situs yang sama.
-- antreless-carts-v1: keranjang per email pembeli dan slot terpilih, termasuk detail layanan. Isi file tidak disimpan.
-- antreless-orders-v2: {version: 2, lastQueueNumber, orders, inventory, partners, promos, lastResetAt?}. inventory memuat stok/active per ID katalog; partners memuat capacity dan slots {capacity, closed} per mitra.
-
-Pesanan memuat id, queueSequence, queueNumber, buyerName, buyerEmail, items [{cartId, menuId, tenant, name, price, qty, details?}], total, slot, status, createdAt, statusHistory. Nilai status internal: waiting/preparing/ready/completed. Field tenant dipertahankan untuk kompatibilitas data lama; seluruh tampilan memakai istilah mitra kampus.
-
-Data lama dimigrasikan tanpa mengubah akun, harga, dan nomor pesanan v2. Semua nama kantin lama (termasuk Kantin A/B/C) dipetakan ke Kantin pada riwayat dan keranjang. Stok serta promo yang sudah tersimpan tetap digunakan. Kapasitas kantin lama digabung dengan mengambil batas paling kecil; slot yang sebelumnya ditutup tetap ditutup. Admin dapat menyesuaikan kapasitas Kantin setelah migrasi. Untuk data lama tanpa inventaris, stok awal dikurangi sesuai pesanan makanan hari ini yang sudah ada. Format antrean lebih lama menggunakan cadangan antreless-demo-orders-v1. Data rusak tidak ditimpa otomatis.
-
-Seluruh data hanya simulasi lokal pada browser yang sama. Pembayaran, email pemulihan, dan pengiriman pesanan sungguhan belum tersedia.
+Tanpa migrasi/env, build menjadi katalog referensi tanpa checkout. Push ke GitHub memicu deployment jika integrasi Vercel aktif. Deployment frontend tidak menerapkan migrasi pada Supabase; jalankan migrasi sesuai panduan di atas.
 
 ## Pengujian
 
-Jalankan `node tests/campus-flow.cjs` dengan Node.js 22+ dan Google Chrome terpasang. Skrip membuka server lokal sementara dan profil browser uji terpisah; data browser utama tidak diubah. Jika Chrome berada di lokasi lain, set environment variable ANTRELESS_CHROME ke lokasi executable.
+- npm test: SQL migrasi/seed asli di PostgreSQL WebAssembly PGlite, dengan schema Auth stub. Meliputi grant/RLS, role signup, harga/snapshot, status, pembatalan, idempotency, rollback beberapa kantin, varian, stok, WIB dan promo. PGlite menyerialkan transaksi; tidak membuktikan contention dari koneksi produksi simultan.
+- npm run test:browser: Chrome headless dengan profil sementara dan browser context terpisah. Adapter Auth/PostgREST pengujian di depan SQL/RLS/RPC asli; memeriksa polling status lintas sesi, checkout gagal/ulang, privasi, reload, editor stok, serta layout 320–1440 px. Screenshot pada test-artifacts/. Supabase Auth produksi dan WebSocket Realtime tidak diuji oleh adapter ini.
+- npm run test:online: proyek Supabase staging dengan Auth/Realtime sesungguhnya; hanya berjalan bila .env.test berisi variabel berikut (diabaikan Git):
+  ANTRELESS_TEST_URL
+  ANTRELESS_TEST_KEY (publishable/anon)
+  ANTRELESS_TEST_ADMIN_EMAIL
+  ANTRELESS_TEST_ADMIN_PASSWORD
+  ANTRELESS_TEST_BUYER_EMAIL
+  ANTRELESS_TEST_BUYER_PASSWORD
+  ANTRELESS_TEST_OTHER_EMAIL
+  ANTRELESS_TEST_OTHER_PASSWORD
+  ANTRELESS_TEST_ALLOW_WRITES=1
 
-Pengujian mencakup akun/peran, katalog/filter, lima formulir layanan, tidak ada unggahan dokumen, keranjang lintas mitra dan persistensi, stok/status, slot penuh/ditutup, kapasitas, checkout bersamaan untuk stok terakhir, pesanan privat, status admin, kegagalan penyimpanan, reset, migrasi, lebar layar 320–1440 px, batas 15.00/17.00 WIB, pop-up sekali per hari antar-akun/tab, kuota promo harian, serta stok utama/promo pada checkout bersamaan. Jam uji dikendalikan dalam profil Chrome terpisah; jam aplikasi pengguna tidak diubah. Lokasi screenshot dicetak di akhir pengujian.
+Tiga akun test harus berbeda, dengan role admin ditetapkan tepercaya. Test online membuat kantin/menu/pesanan, memeriksa Realtime, RLS, idempotency, status, login ulang dan perebutan stok terakhir. Setelah sukses kantin dinonaktifkan, riwayat test disimpan untuk pemeriksaan. Lakukan juga uji HP/laptop nyata sesuai alur pembeli/admin sebelum aktivasi produksi.
 
 ## File
 
-- index.html: login, katalog, formulir detail layanan, keranjang, konfirmasi, Pesanan Saya, dashboard dan konfirmasi reset.
-- style.css: palet navy (#102C46), toska (#12B99A), kuning (#FFBF32), dan putih (#FFFFFF) dengan CSS variables dan tampilan desktop/HP.
-- app.js: katalog, autentikasi, penyimpanan, stok, slot, layanan, checkout dan antrean.
-- tests/campus-flow.cjs: pengujian integrasi melalui Chrome.
-- assets/menu-illustrations.png: gambar makanan yang dipertahankan.
+index.html, style.css, src/overrides.css: desain.
+src/app.js: Auth, katalog, draft, checkout, admin, status dan sinkronisasi.
+src/supabase.js: client publik; src/domain.js: aturan tampilan dan WIB.
+src/catalog.seed.js, supabase/seed.sql: katalog referensi.
+supabase/migrations/202610100001_shared_orders.sql: schema, RLS, transaksi, grants dan publication.
+scripts/generate-seed.js: membangkitkan seed/daftar konfirmasi dari satu sumber.
+scripts/build.js, scripts/serve.js: build dan server.
+tests/: uji lokal dan online opsional; .env.example: konfigurasi tanpa kredensial.
 
-
+Masih diperlukan: Project URL/key publik, migrasi Supabase terpasang, konfigurasi Auth/Realtime, akun admin Supabase, verifikasi foto/menu, dan environment Vercel.

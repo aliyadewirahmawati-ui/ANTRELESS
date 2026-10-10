@@ -1,0 +1,90 @@
+/* General canteen ordering extends the established design and shared palette. */
+.setup-notice{padding:13px 15px;margin-top:18px;border:1px solid var(--glass-border);border-radius:12px;background:var(--glass-soft);color:var(--surface);font-size:12px;line-height:1.6}
+.data-notice{padding:18px 22px;margin-top:30px;border:1px solid var(--highlight);border-radius:12px;background:var(--highlight-soft);color:var(--text);font-size:13px;line-height:1.7}
+.hero h1{font-size:clamp(54px,6.4vw,86px);overflow-wrap:normal}
+.hero-facts span{max-width:80px}
+.dish .category-placeholder{height:auto;aspect-ratio:1}
+.dish-body .price small{display:block;font-size:9px;line-height:1.6;color:var(--muted-text);font-weight:400;margin-top:4px}
+.availability-badge{display:block;font-size:10px;line-height:1.6;margin-top:12px;padding:5px 8px;border-radius:5px;background:var(--soft-accent);color:var(--accent-hover)}
+.availability-badge.unavailable{background:var(--highlight-soft);color:var(--processing-text)}
+button:disabled{cursor:not-allowed}
+.add:disabled{background:var(--border);color:var(--muted-text)}
+.checkout:disabled{opacity:.6}
+.cart-group{padding-top:18px}
+.cart-group h4{margin:0 0 10px;font-size:13px;color:var(--primary)}
+.cart-line{padding:12px 0;border-bottom:1px solid var(--border);font-size:11px;line-height:1.6}
+.cart-line strong,.cart-line small,.cart-line>div>span{display:block;overflow-wrap:anywhere}
+.cart-line small{color:var(--muted-text)}
+.cart-line .cart-warning{color:var(--error);font-size:10px;padding:0;background:transparent}
+.cart-quantity{display:flex;align-items:center;gap:8px;margin-top:9px}
+.cart-quantity button{display:grid;place-items:center;width:30px;height:30px;border-radius:5px;background:var(--surface);color:var(--primary);border:1px solid var(--border);font-size:17px}
+.cart-quantity button:last-child{margin-left:auto}
+.cart-subtotal{padding-top:10px;font-weight:700;font-size:11px;text-align:right}
+.summary .checkout{margin-top:18px}
+.kantin-symbol{display:grid;place-items:center;width:80px;height:80px;flex-shrink:0;border-radius:50%;background:var(--soft-accent);color:var(--accent-hover);font-size:40px}
+.admin-toolbar{display:flex;justify-content:space-between;gap:18px;align-items:end;margin-bottom:28px}
+.admin-toolbar label{display:grid;gap:8px;font-size:13px;font-weight:700;min-width:0}
+.admin-toolbar select{width:min(360px,100%);padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
+.editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:end}
+.editor-grid label{min-width:0}
+.check-label{flex-direction:row!important;align-items:center;gap:9px!important;font-weight:400!important}
+.check-label input{width:18px!important;height:18px;min-height:18px!important;flex:0 0 18px;padding:0!important;accent-color:var(--accent-hover)}
+textarea{font:inherit;color:var(--text);background:var(--background);border:1px solid var(--border);border-radius:7px;width:100%;padding:11px;min-height:85px;resize:vertical}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--focus-ring);outline-offset:3px}
+.variant-list{margin-block:15px}
+.variant-list>div{border-top:1px solid var(--border);padding:12px 0;display:grid;gap:6px;font-size:12px;line-height:1.6}
+.variant-list small{color:var(--muted-text)}
+.variant-list button{justify-self:start;min-height:30px}
+.inventory-card>.category{margin-top:14px}
+.status-chip{padding:9px 12px;display:inline-block;border-radius:999px;background:var(--soft-accent);color:var(--primary);font-size:11px;line-height:1.5;font-weight:700}
+.status-cancelled{background:var(--error-surface);color:var(--error)}
+.order-message{font-size:13px;font-weight:700;margin-top:20px;line-height:1.7}
+.receipt-items{list-style:none;padding:0;margin:18px 0}
+.receipt-items li{display:flex;justify-content:space-between;align-items:start;gap:20px;font-size:12px;line-height:1.7;padding:12px 0;border-bottom:1px solid var(--border)}
+.receipt-items small{display:block;color:var(--muted-text);font-size:11px}
+.receipt-items b{white-space:nowrap}
+.history-total{display:flex;justify-content:space-between;gap:15px;font-size:15px;margin-top:20px}
+.order-estimate{font-size:12px;line-height:1.8;margin-top:15px;color:var(--muted-text)}
+.order-estimate strong{color:var(--text)}
+.order-timeline,.legacy-note{font-size:11px;line-height:1.8;color:var(--muted-text);margin-top:20px}
+.order-timeline summary,.legacy-note summary{cursor:pointer;color:var(--primary);font-weight:700}
+.order-timeline li{padding-block:5px}
+.legacy-note{padding:15px;border:1px solid var(--border);border-radius:10px;background:var(--highlight-soft)}
+.legacy-note p{margin-top:12px}
+.order-admin-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:25px;padding-top:20px;border-top:1px solid var(--border)}
+.order-admin-form label{display:grid;gap:7px;font-size:11px;font-weight:700;line-height:1.6}
+.order-admin-form input{width:100%;min-width:0;padding:11px;border:1px solid var(--border);border-radius:6px;background:var(--background);color:var(--text);font:inherit;font-weight:400}
+.order-admin-actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap}
+.order-admin-actions button{font-size:11px;min-height:44px}
+.cancel-action{color:var(--error);background:var(--error-surface)}
+.last-call-card .category-placeholder svg{width:105px;height:105px}
+.last-call-card .category-placeholder>span{font-size:8px;position:absolute;bottom:12px}
+.last-call-card .last-call-food{position:relative;height:180px;aspect-ratio:auto}
+.last-call-popup-card .last-call-food{height:125px}
+.last-call-empty{grid-column:1/-1;font-size:13px;line-height:1.8;padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--soft-accent);width:100%}
+.last-call-card-body{gap:12px}
+.service-dialog p{line-height:1.7}
+.service-dialog .button{margin-top:16px}
+.service-fields{margin-top:20px}
+@media(max-width:650px){
+ .hero h1{font-size:clamp(47px,12vw,67px);letter-spacing:-2px}
+ .hero h1 em br{display:none}
+ .hero-actions{gap:15px;flex-wrap:wrap}
+ .hero-actions .button{max-width:100%;font-size:11px}
+ .product-heading h2{font-size:clamp(32px,9vw,43px)}
+ .editor-grid,.order-admin-form{grid-template-columns:1fr}
+ .admin-toolbar{align-items:stretch;flex-direction:column}
+ .admin-toolbar select{width:100%}
+ .admin-toolbar .button{align-self:start}
+ .receipt-items li{gap:10px;font-size:11px}
+ .receipt-items b{white-space:normal;text-align:right;flex-shrink:0;max-width:42%}
+ .order-admin-actions{flex-direction:column;align-items:stretch}
+ .order-admin-actions .button{justify-content:center}
+ .kantin-symbol{width:58px;height:58px;font-size:30px}
+ .tenant{gap:14px}
+ .tenant h3{overflow-wrap:anywhere}
+ .last-call-popup-card .last-call-food{height:100%;min-height:160px}
+ .last-call-popup-card .category-placeholder svg{width:72px;height:72px}
+ .last-call-popup-card .category-placeholder>span{font-size:6px}
+ .data-notice{font-size:11px;padding:15px}
+}
