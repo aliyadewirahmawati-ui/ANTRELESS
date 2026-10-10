@@ -1,0 +1,161 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#DB2777">
+  <title>Antreless — Pre-order produk & layanan kampus</title>
+  <meta name="description" content="Pre-order produk dan layanan kampus. Pesan dulu, lalu ambil sesuai slot yang tersedia.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="login-screen" id="loginScreen" aria-labelledby="authTitle">
+  <div class="login-orb login-orb-one" aria-hidden="true"></div>
+  <div class="login-orb login-orb-two" aria-hidden="true"></div>
+  <div class="login-grid" aria-hidden="true"></div>
+  <form class="login-card" id="authForm" novalidate>
+    <div class="login-brand"><span class="login-mark" aria-hidden="true">a.</span><span>Antre<strong>less</strong><i>.</i></span></div>
+    <h1 id="authTitle">Selamat datang!</h1>
+    <p class="login-tagline">Kebutuhan kampusmu, tanpa drama antre.</p>
+    <p class="login-intro" id="authDescription">Masuk untuk memilih produk atau layanan dan mengatur waktu pengambilan pesananmu.</p>
+
+    <div class="login-fields">
+      <div class="login-field" id="nameField" hidden>
+        <label for="authName">Nama</label>
+        <div class="login-input-wrap"><span class="input-icon" aria-hidden="true">♙</span><input id="authName" maxlength="40" placeholder="Nama panggilan" autocomplete="name"></div>
+      </div>
+      <div class="login-field">
+        <label for="authEmail">Email</label>
+        <div class="login-input-wrap"><svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="m4.5 7 7.5 6 7.5-6"/></svg><input id="authEmail" type="email" required maxlength="120" placeholder="nama@email.com" autocomplete="email"></div>
+      </div>
+      <div class="login-field">
+        <label for="authPassword">Kata sandi</label>
+        <div class="login-input-wrap"><svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg><input id="authPassword" type="password" required minlength="1" maxlength="100" placeholder="Masukkan kata sandimu" autocomplete="current-password"><button class="password-toggle" id="passwordToggle" type="button" onclick="togglePassword()" aria-label="Tampilkan kata sandi" aria-pressed="false">Lihat</button></div>
+      </div>
+      <div class="login-field" id="confirmField" hidden>
+        <label for="authConfirm">Konfirmasi kata sandi</label>
+        <div class="login-input-wrap"><svg class="input-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></svg><input id="authConfirm" type="password" maxlength="100" placeholder="Masukkan kata sandi sekali lagi" autocomplete="new-password"></div>
+      </div>
+    </div>
+    <div class="login-options" id="loginOptions"><label class="remember-option"><input id="rememberMe" type="checkbox"><span>Ingat saya</span></label><button class="forgot-link" id="forgotLink" type="button" onclick="openForgotDialog()">Lupa kata sandi?</button></div>
+    <div class="auth-error" id="authError" role="alert" aria-live="polite"></div>
+    <button class="login-submit" id="authSubmit" type="submit">Masuk</button>
+    <button class="demo-login" id="demoLogin" type="button" onclick="loginBuyerDemo()">Jelajahi dengan akun demo</button>
+    <p class="login-switch" id="loginSwitch">Baru di Antreless? <button type="button" onclick="setAuthMode('register')">Buat akun</button></p>
+  </form>
+  <dialog class="forgot-dialog" id="forgotDialog" aria-labelledby="forgotTitle">
+    <div class="forgot-icon" aria-hidden="true">i</div>
+    <h2 id="forgotTitle">Pemulihan kata sandi</h2>
+    <p>Akun Antreless masih berupa simulasi lokal. Pemulihan melalui email belum didukung. Jika lupa kata sandi, buat akun demo baru dengan email lain.</p>
+    <button type="button" onclick="closeForgotDialog()">Mengerti</button>
+  </dialog>
+</section>
+<div id="appShell" hidden>
+<a class="skip-link" href="#menu">Langsung ke menu</a>
+<div class="announcement"><div class="container"><span>PRODUK & LAYANAN KAMPUS · PRE-ORDER</span><span>Lebih banyak waktu buat menikmati istirahatmu ↗</span></div></div>
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="#beranda" aria-label="Antreless beranda"><span class="mark" aria-hidden="true">a.</span>Antre<span>less</span><span class="brand-dot">.</span></a>
+    <nav aria-label="Navigasi utama"><a href="#beranda">Beranda</a><a href="#menu">Menu</a><a href="#pesanan-saya">Pesanan Saya</a><a href="#tenant">Mitra kampus</a><a href="#cara-pesan">Cara pesan</a></nav>
+    <div class="top-right"><a class="cart-pill" href="#pesanan" aria-label="Buka keranjang">Tas <span id="cartCount">0</span></a><div class="account-actions" id="userActions" hidden><span class="account-name" id="accountName"></span><button class="auth-btn" onclick="logout()">Keluar</button></div></div>
+  </div>
+</header>
+<main>
+  <section class="hero" id="beranda">
+    <div class="container hero-grid">
+      <div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> ISTIRAHATMU TERLALU BERHARGA UNTUK ANTRE</div><h1>Urus kebutuhan.<br>Tanpa <em>drama<br> antre.</em></h1><p>Dari makanan favorit sampai print tugas. Pesan produk atau layanan dari kelas, pilih slot ambil, lalu datang saat pesananmu siap.</p><div class="hero-actions"><a class="button primary" href="#menu">Cari produk & layanan <span>↗</span></a><a class="text-link" href="#cara-pesan">Gimana caranya? <span>→</span></a></div><div class="hero-facts"><div><b>4</b><span>mitra kampus contoh</span></div><div><b id="menuCount">50</b><span>pilihan produk & layanan</span></div></div></div>
+      <div class="hero-visual"><div class="plate-ring"><div class="food-photo hero-photo" role="img" aria-label="Ilustrasi nasi ayam geprek dengan sambal" style="--photo-x:0%;--photo-y:0%"></div></div><div class="floating-label label-top"><span class="label-icon">↗</span><div><b>Pesan dulu.</b><small>Nggak perlu tunggu di barisan.</small></div></div><div class="floating-label label-bottom"><span class="label-icon">◷</span><div><b>Ambil sesuai waktumu.</b><small>Pilih slot sebelum checkout.</small></div></div><span class="visual-note">FOTO ILUSTRASI · MENU DEMO</span><span class="hero-spark" aria-hidden="true">✳</span></div>
+    </div>
+  </section>
+  <div class="food-ribbon" aria-label="Kategori menu"><div class="container"><span>Aneka Nasi</span><span>Bakmi</span><span>Bakso dan Soto</span><span>Jajanan</span><span>Minuman</span><span>Roti</span></div></div>
+  <section class="menu-section container" id="menu">
+    <div class="product-heading">
+      <div class="eyebrow">KEBUTUHAN KAMPUS, DALAM SATU TAS</div>
+      <h2>Temukan <em>produk & layanan</em></h2>
+      <p>Dari sarapan, makan siang, sampai kebutuhan kampus.</p>
+    </div>
+    <div class="search-area" aria-label="Pencarian produk, layanan, dan mitra kampus"><div class="search-box"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="searchInput" type="search" placeholder="Cari produk, layanan, atau mitra kampus…" aria-label="Cari produk, layanan, atau mitra kampus" oninput="searchMenus()"><button class="clear-search" id="clearSearch" onclick="clearSearch()" hidden>Hapus</button></div><p class="search-hint" id="searchHint" aria-live="polite">Coba cari ‘bubur’, ‘croissant’, atau ‘print’.</p></div>
+    <div id="lastCallBanner" class="last-call-banner" hidden><div><span class="last-call-badge">LAST CALL</span><h3>Last Call: Menu Hemat</h3><p>Harga spesial untuk makanan & minuman kantin · Ambil sebelum 17.00 WIB.</p></div><button class="button primary" onclick="chooseLastCall()">Lihat menu hemat ↗</button></div>
+    <section class="product-filters" aria-labelledby="productFiltersTitle">
+      <div class="filter-panel-heading"><h3 id="productFiltersTitle">Filter produk</h3><button id="lastCallFilter" class="category" aria-pressed="false" onclick="toggleLastCallFilter()" hidden>Menu Hemat · Last Call</button></div>
+      <div class="filter-groups">
+        <fieldset class="type-filter">
+          <legend>Jenis</legend>
+          <div class="category-bar">
+      <button class="category active" data-category="all" aria-pressed="true" onclick="chooseCategory('all')">Semua</button>
+      <button class="category" data-category="aneka-nasi" aria-pressed="false" onclick="chooseCategory('aneka-nasi')">Aneka Nasi</button>
+      <button class="category" data-category="bakmi" aria-pressed="false" onclick="chooseCategory('bakmi')">Bakmi</button>
+      <button class="category" data-category="bakso-soto" aria-pressed="false" onclick="chooseCategory('bakso-soto')">Bakso dan Soto</button>
+      <button class="category" data-category="jajanan" aria-pressed="false" onclick="chooseCategory('jajanan')">Jajanan</button>
+      <button class="category" data-category="minuman" aria-pressed="false" onclick="chooseCategory('minuman')">Minuman</button>
+      <button class="category" data-category="roti" aria-pressed="false" onclick="chooseCategory('roti')">Roti</button>
+      <button class="category" data-category="layanan" aria-pressed="false" onclick="chooseCategory('layanan')">Layanan Kampus</button>
+          </div>
+        </fieldset>
+        <div class="partner-filter">
+          <label for="partnerSelect">Mitra kampus</label>
+          <select id="partnerSelect" onchange="choosePartnerFilter(this.value)">
+            <option value="all">Semua mitra kampus</option>
+            <option>Kantin A</option>
+            <option>Kantin B</option>
+            <option>Kantin C</option>
+            <option>Fotokopi &amp; Print Kampus</option>
+          </select>
+        </div>
+      </div>
+    </section>
+    <div class="layout">
+      <div><div class="menu-title"><div><h3 id="tenantTitle">Semua menu</h3><p id="tenantSub">Pilih menu, lalu tentukan waktu ambil.</p></div><button class="link-btn" id="resetFilter" onclick="resetFilters()" hidden>Reset filter ↗</button></div><div class="menu-list" id="menuList" aria-live="polite"></div><p class="illustration-note">Foto dan ilustrasi kategori digunakan sebagai contoh. Menu tanpa foto memakai placeholder kategori; harga, mitra kampus, dan slot masih simulasi.</p></div>
+      <aside id="pesanan" class="order-aside"><div class="panel"><div class="panel-heading"><span class="eyebrow">SUDAH PILIH KEBUTUHANMU?</span><h3>Pesananmu<span>↘</span></h3></div><div class="empty" id="empty"><span class="empty-bag" aria-hidden="true">♧</span><b>Tasmu masih kosong.</b><p>Tambahkan produk atau layanan,<br>nanti kita atur jam ambilnya.</p></div><div id="summary" class="summary"><p class="cart-tenant" id="cartTenant"></p><p id="cartWarning" class="cart-warning" role="alert" hidden></p><div id="items"></div><div class="total row"><span>Total</span><span id="total">Rp0</span></div><b class="slot-heading">Pilih jam ambil</b><p class="slot-caption">Hari ini · 06.30–17.00 · Setiap 10 menit</p><div class="slots" id="slots"></div><div id="slotAvailability" class="slot-availability" aria-live="polite"></div><button class="checkout" id="checkoutButton" onclick="checkout()">Buat pesanan <span>↗</span></button></div><p class="panel-note">Bisa pilih banyak menu dari beberapa mitra kampus.<br>Satu slot ambil untuk semua mitra dalam tas.</p></div><div class="slot-note"><span aria-hidden="true">◷</span><p><b>Waktumu, pilihanmu.</b>Slot membantu mitra kampus menyiapkan pesanan sebelum kamu datang.</p></div><div class="deal" id="lastCallDeal" hidden><span class="eyebrow">LAST CALL: MENU HEMAT</span><h3>Lebih hemat.<br>Lebih sedikit sisa.</h3><p>Setiap 15.00–17.00 WIB, kantin menawarkan makanan dan minuman yang masih layak konsumsi dengan harga spesial. Lihat badge Menu Hemat dan ambil sebelum tutup.</p></div></aside>
+    </div>
+  </section>
+  <section class="queue-section container" id="pesanan-saya" aria-labelledby="buyerOrdersTitle">
+    <div class="section-head"><div><div class="eyebrow">PANTAU PESANANMU</div><h2 id="buyerOrdersTitle">Pesanan <em>Saya.</em></h2></div><p>Nomor antrean, waktu ambil,<br>dan status terbaru pesananmu.</p></div>
+    <div class="order-confirmation" id="lastOrderNotice" role="status" hidden><span>Pesanan berhasil dibuat. Nomor antreanmu</span><strong id="lastOrderNumber"></strong><p>Pesanan menunggu untuk disiapkan. Pantau statusnya di bawah ini.</p><div id="lastOrderDetails"></div></div>
+    <p id="buyerStorageError" class="order-storage-error" role="alert" hidden></p>
+    <p class="queue-local-note" id="buyerOrderCount"></p>
+    <div class="history-filters" aria-label="Filter Pesanan Saya"><button class="category active" data-buyer-filter="all" aria-pressed="true" onclick="chooseOrderFilter('all')">Semua</button><button class="category" data-buyer-filter="waiting" aria-pressed="false" onclick="chooseOrderFilter('waiting')">Menunggu</button><button class="category" data-buyer-filter="preparing" aria-pressed="false" onclick="chooseOrderFilter('preparing')">Sedang disiapkan</button><button class="category" data-buyer-filter="ready" aria-pressed="false" onclick="chooseOrderFilter('ready')">Siap diambil</button><button class="category" data-buyer-filter="completed" aria-pressed="false" onclick="chooseOrderFilter('completed')">Selesai</button></div>
+    <div id="orderHistory" class="order-history" aria-live="polite"></div>
+  </section>
+  <section class="tenant-section" id="tenant">
+    <div class="container">
+      <div class="section-head"><div><div class="eyebrow">KENALAN DENGAN MITRA KAMPUS</div><h2>Rasa lokal.<br><em>Favorit anak kampus.</em></h2></div><p>Empat mitra kampus contoh, banyak pilihan.<br>Klik mitra kampus untuk melihat menunya.</p></div>
+      <div class="tenant-grid">
+        <article class="tenant" data-tenant="Kantin A"><div class="food-photo tenant-photo" style="--photo-x:0%;--photo-y:0%" role="img" aria-label="Ilustrasi nasi ayam Kantin A"></div><div class="tenant-copy"><span class="tenant-type">ANEKA NASI · BAKSO DAN SOTO · MINUMAN</span><h3>Kantin A</h3><p>Aneka nasi, bubur ayam, bakso, dan soto hangat. Lengkapi pesanan dengan es jeruk atau teh lemon.</p><button class="tenant-button" onclick="chooseTenant('Kantin A')"><span class="tenant-menu-count" data-tenant-menu-count="Kantin A">Lihat 16 menu</span><span aria-hidden="true">↗</span></button></div></article>
+        <article class="tenant" data-tenant="Kantin B"><div class="food-photo tenant-photo" style="--photo-x:0%;--photo-y:50%" role="img" aria-label="Ilustrasi mie ayam Kantin B"></div><div class="tenant-copy"><span class="tenant-type">BAKMI · JAJANAN · MINUMAN</span><h3>Kantin B</h3><p>Bakmi favorit, jajanan gurih, dan Thai Tea. Pilihan pas untuk makan siang atau istirahat singkat.</p><button class="tenant-button" onclick="chooseTenant('Kantin B')"><span class="tenant-menu-count" data-tenant-menu-count="Kantin B">Lihat 14 menu</span><span aria-hidden="true">↗</span></button></div></article>
+        <article class="tenant" data-tenant="Kantin C"><div class="food-photo tenant-photo" style="--photo-x:100%;--photo-y:100%" role="img" aria-label="Ilustrasi sandwich telur Kantin C"></div><div class="tenant-copy"><span class="tenant-type">MINUMAN · ROTI</span><h3>Kantin C</h3><p>Croissant, roti, dan sandwich ditemani jus, kopi susu, atau smoothie. Teman santai di sela kuliah.</p><button class="tenant-button" onclick="chooseTenant('Kantin C')"><span class="tenant-menu-count" data-tenant-menu-count="Kantin C">Lihat 15 menu</span><span aria-hidden="true">↗</span></button></div></article>
+        <article class="tenant" data-tenant="Fotokopi & Print Kampus"><div class="print-partner-icon" aria-hidden="true">▤</div><div class="tenant-copy"><span class="tenant-type">FOTOKOPI · PRINT · SCAN · JILID · LAMINATING</span><h3>Fotokopi & Print Kampus</h3><p>Bereskan dokumen dan tugasmu. Isi detail layanan; file hanya simulasi lokal.</p><button class="tenant-button" onclick="chooseTenant('Fotokopi & Print Kampus')"><span class="tenant-menu-count" data-tenant-menu-count="Fotokopi & Print Kampus">Lihat 5 layanan</span><span aria-hidden="true">↗</span></button></div></article>
+      </div>
+    </div>
+  </section>
+  <section class="steps-section container" id="cara-pesan"><div class="section-head"><div><div class="eyebrow">DARI KELAS KE MITRA KAMPUS</div><h2>Tiga langkah.<br><em>Lebih santai.</em></h2></div><a class="text-link" href="#menu">Coba pesan sekarang ↗</a></div><div class="steps"><article><span class="step-number">01</span><h3>Pilih yang kamu suka.</h3><p>Cari menu atau buka mitra kampus favorit. Tambahkan makanan, minuman, dan layanan dari mitra kampus pilihanmu ke tas.</p></article><article><span class="step-number">02</span><h3>Tentukan jam ambil.</h3><p>Pilih slot yang pas dengan jadwalmu. Masuk atau buat akun demo untuk melanjutkan pesanan.</p></article><article><span class="step-number">03</span><h3>Datang, ambil, nikmati.</h3><p>Lihat nomor antrean dan pantau status pesananmu di Pesanan Saya.</p></article></div></section>
+  <section class="cta-section"><div class="container cta-grid"><div><div class="eyebrow">PESAN DULU, NIKMATI NANTI</div><h2>Waktu istirahat<br>buat <em>kamu.</em></h2><p>Bukan buat berdiri di antrean.</p></div><a class="button light" href="#menu">Temukan kebutuhanmu <span>↗</span></a><span class="cta-star" aria-hidden="true">✳</span></div></section>
+</main>
+<footer><div class="container footer-top"><a class="brand" href="#beranda"><span class="mark">a.</span>Antre<span>less</span><span class="brand-dot">.</span></a><p>Pesan dulu. Ambil tepat waktu.<br>Lebih banyak ruang untuk istirahat.</p><div><a href="#menu">Menu</a><a href="#tenant">Mitra kampus</a><a href="#cara-pesan">Cara pesan</a></div></div><div class="container footer-bottom"><span>Antreless · Produk & layanan kampus</span><span>Foto ilustrasi · Akun & pemesanan demo</span></div></footer>
+</div>
+<section id="adminShell" hidden aria-labelledby="adminTitle">
+  <header class="site-header"><div class="container admin-nav"><a class="brand" href="#dashboard-admin"><span class="mark" aria-hidden="true">a.</span>Antre<span>less</span><span class="brand-dot">.</span></a><div class="admin-account"><span>Admin Antreless</span><span class="admin-role">Admin</span><button class="auth-btn" onclick="logout()">Keluar</button></div></div></header>
+  <main class="container admin-main" id="dashboard-admin">
+    <div class="section-head"><div><div class="eyebrow">KELOLA PESANAN</div><h1 id="adminTitle">Dashboard <em>Admin.</em></h1></div><p id="adminDate"></p></div>
+    <p class="admin-local-note">Seluruh data adalah simulasi lokal dan hanya tersimpan pada browser yang sama. Perubahan status di sini akan terlihat pada Pesanan Saya milik pembeli.</p>
+    <p id="adminStorageError" class="order-storage-error" role="alert" hidden></p>
+    <div id="adminStats" class="queue-stats admin-stats" aria-live="polite"></div>
+    <section class="management-panel" aria-labelledby="operatingTitle"><div class="management-heading"><div><h2 id="operatingTitle">Jam operasional & slot</h2><p>Setiap hari 06.30–17.00 · 63 slot, masing-masing 10 menit. Kapasitas dihitung per pesanan per mitra, termasuk pesanan selesai pada hari yang sama.</p></div><button class="reset-demo" onclick="openResetDialog()">Reset data demo hari ini</button></div><div id="adminSlotControls"></div></section>
+    <section class="management-panel" aria-labelledby="stockTitle"><div class="management-heading"><div><h2 id="stockTitle">Stok & ketersediaan</h2><p>Stok awal produk: 20. Layanan dikelola melalui status aktif dan kapasitas slot.</p></div><label>Mitra kampus<select id="inventoryPartner" onchange="inventoryPartner=this.value;renderManagement(readOrderState())"><option value="all">Semua mitra kampus</option></select></label></div><div id="adminInventory" class="inventory-grid"></div></section>
+    <section class="management-panel" aria-labelledby="promoAdminTitle"><div class="management-heading"><div><span class="last-call-badge">LAST CALL</span><h2 id="promoAdminTitle">Last Call: Menu Hemat</h2><p>Untuk makanan & minuman layak konsumsi dari Kantin A–C. Layanan dokumen tidak termasuk. Promo otomatis tampil 15.00–17.00 WIB.</p></div><p id="promoOrderCount" class="promo-order-count"></p></div><p id="promoClockStatus" class="management-note"></p><div id="promoAdminControls"></div><div id="promoAdminList" class="promo-admin-list"></div></section>
+    <div class="admin-list-heading"><h2>Daftar antrean</h2><p id="adminOrderCount"></p></div>
+    <div class="history-filters" aria-label="Filter status pesanan admin"><button class="category active" data-admin-filter="all" aria-pressed="true" onclick="chooseAdminFilter('all')">Semua</button><button class="category" data-admin-filter="waiting" aria-pressed="false" onclick="chooseAdminFilter('waiting')">Menunggu</button><button class="category" data-admin-filter="preparing" aria-pressed="false" onclick="chooseAdminFilter('preparing')">Sedang disiapkan</button><button class="category" data-admin-filter="ready" aria-pressed="false" onclick="chooseAdminFilter('ready')">Siap diambil</button><button class="category" data-admin-filter="completed" aria-pressed="false" onclick="chooseAdminFilter('completed')">Selesai</button></div>
+    <div id="adminOrders" class="order-history" aria-live="polite"></div>
+  </main>
+</section>
+<dialog id="lastCallDialog" class="last-call-dialog" aria-labelledby="lastCallTitle" aria-describedby="lastCallDescription"><div class="last-call-modal-heading"><span class="last-call-badge">LAST CALL</span><button class="last-call-close" onclick="closeLastCall()" aria-label="Tutup promo Last Call">×</button></div><h2 id="lastCallTitle">Masih ada menu enak hari ini 💗</h2><p id="lastCallDescription">Pesan dengan harga spesial, lalu ambil sebelum kantin tutup pukul 17.00.</p><div id="lastCallCards" class="last-call-cards"></div><p class="last-call-until">Berlaku hingga pukul 17.00.</p><div class="last-call-actions"><button class="button primary" onclick="chooseLastCall()">Lihat menu hemat</button><button class="button last-call-later" onclick="closeLastCall()">Nanti saja</button></div></dialog>
+<dialog id="serviceDialog" class="service-dialog" aria-labelledby="serviceTitle"><form id="serviceForm"><div class="dialog-heading"><h2 id="serviceTitle">Detail layanan</h2><button type="button" onclick="closeServiceDialog()" aria-label="Tutup detail layanan">×</button></div><p>Fotokopi & Print Kampus · Harga simulasi berdasarkan detail pesanan.</p><div id="serviceFields" class="service-fields"></div><p id="servicePrice" class="service-price" aria-live="polite"></p><p id="serviceError" class="form-error" role="alert"></p><button class="button primary" type="submit">Tambahkan layanan ke tas</button></form></dialog>
+<dialog id="resetDialog" class="service-dialog" aria-labelledby="resetTitle"><h2 id="resetTitle">Reset data demo hari ini?</h2><p>Stok kembali ke 20, semua layanan aktif, kapasitas kembali ke 5 pesanan per mitra per slot, dan semua slot dibuka. Tiga promo Last Call contoh dipulihkan. Pesanan hari ini dihapus. Riwayat hari sebelumnya, akun, keranjang, dan urutan nomor ANT tetap tersimpan.</p><div class="reset-actions"><button class="category" onclick="resetDialog.close()">Batal</button><button class="button primary" onclick="resetDemoToday()">Reset hari ini</button></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+<script src="app.js"></script>
+</body>
+</html>
+
+
+
+
