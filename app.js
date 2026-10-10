@@ -105,10 +105,12 @@ function hydratePromos(state){
   for(const promo of Object.values(state.promos))if(promo.stockDate!==jakartaDate()){promo.stockDate=jakartaDate();promo.stock=promo.dailyStock;}
   return state;
 }
-function currentPromo(menu,state,now=new Date()){
+function configuredPromo(menu,state,now=new Date()){
   const promo=state?.promos?.[menu?.id],inventory=state?.inventory[menu?.id];
-  return lastCallHours(now)&&eligibleLastCall(menu)&&promo?.active&&promo.stockDate===jakartaDate(now)&&inventory?.active?promo:null;
+  return eligibleLastCall(menu)&&promo?.active&&promo.stockDate===jakartaDate(now)&&inventory?.active?promo:null;
 }
+function currentPromo(menu,state,now=new Date()){return lastCallHours(now)?configuredPromo(menu,state,now):null}
+function displayPromoMenus(state,now=new Date()){return menuCatalog.filter(menu=>configuredPromo(menu,state,now)).sort((a,b)=>Number(configuredPromo(b,state,now).stock>0)-Number(configuredPromo(a,state,now).stock>0)||menuAlphabet.compare(a.name,b.name))}
 function activePromoMenus(state,now=new Date()){return menuCatalog.filter(menu=>currentPromo(menu,state,now)).sort((a,b)=>Number(currentPromo(b,state,now).stock>0)-Number(currentPromo(a,state,now).stock>0)||menuAlphabet.compare(a.name,b.name))}
 function availablePromoMenus(state,now=new Date()){return menuCatalog.filter(menu=>{const promo=currentPromo(menu,state,now);return promo&&promo.stock>0}).sort((a,b)=>menuAlphabet.compare(a.name,b.name))}
 function promoCartQuantity(id){return cart.filter(item=>item.menuId===id&&item.promotion==='last-call').reduce((sum,item)=>sum+item.qty,0)}
@@ -133,20 +135,29 @@ function chooseLastCall(){
 }
 function toggleLastCallFilter(){if(promoOnly){promoOnly=false;renderMenu()}else chooseLastCall()}
 function promoMenuCard(menu,state,popup=false){
-  const promo=currentPromo(menu,state);if(!promo)return '';
+  const promo=popup?currentPromo(menu,state):configuredPromo(menu,state);if(!promo)return '';
+  const active=lastCallHours(),buttonLabel=!active?(campusMinutes()<900?'Mulai pukul 15.00':'Aktif besok pukul 15.00'):promo.stock>0&&promoCartQuantity(menu.id)>=promo.stock?'Kuota promo sudah di tas':'Tambah ke keranjang';
   const discount=Math.max(1,Math.round((menu.price-promo.price)/menu.price*100)),unit=menu.category==='minuman'?'minuman':'porsi',limit=promoCartQuantity(menu.id)>=promo.stock,regular=menuStatus(menu,state).available&&regularCartQuantity(menu.id)<state.inventory[menu.id].stock;
   const visual=menu.photo?`<div class="food-photo last-call-food" role="img" aria-label="Ilustrasi ${escapeHTML(menu.name)}" style="--photo-x:${menu.photo.x}%;--photo-y:${menu.photo.y}%"></div>`:`<div class="last-call-food last-call-food-illustration" role="img" aria-label="Ilustrasi ${escapeHTML(menu.name)}"><svg viewBox="0 0 128 128" aria-hidden="true" fill="#fff2dc" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${categoryIllustrations[menu.category]}</svg></div>`;
-  return `<article class="last-call-card ${popup?'last-call-popup-card':'last-call-featured-card'}" data-promo-menu="${menu.id}"><div class="last-call-card-media">${visual}<span class="last-call-discount">-${discount}%</span></div><div class="last-call-card-body"><p class="last-call-partner">${escapeHTML(menu.tenant)}</p><h3>${escapeHTML(menu.name)}</h3>${menuPriceHTML(menu,promo)}<p class="last-call-card-stock${promo.stock===0?' sold-out':''}">${promo.stock===0?'Promo habis':'Tersisa '+promo.stock+' '+unit}</p><p class="last-call-pickup">◷ Ambil sebelum 17.00</p><button class="last-call-add" data-promo-add="${menu.id}" ${limit?'disabled':''}>${promo.stock>0&&limit?'Kuota promo sudah di tas':'Tambah ke keranjang'}</button>${promo.stock===0&&regular?`<button class="last-call-regular" data-regular-add="${menu.id}">Pesan harga normal · ${rupiah(menu.price)}</button>`:''}</div></article>`;
+  return `<article class="last-call-card ${popup?'last-call-popup-card':'last-call-featured-card'}" data-promo-menu="${menu.id}"><div class="last-call-card-media">${visual}<span class="last-call-discount">-${discount}%</span></div><div class="last-call-card-body"><p class="last-call-partner">${escapeHTML(menu.tenant)}</p><h3>${escapeHTML(menu.name)}</h3>${menuPriceHTML(menu,promo)}<p class="last-call-card-stock${promo.stock===0?' sold-out':''}">${promo.stock===0?'Promo habis':'Tersisa '+promo.stock+' '+unit}</p><p class="last-call-pickup">◷ Ambil sebelum 17.00</p><button class="last-call-add" data-promo-add="${menu.id}" ${!active||limit?'disabled':''}>${buttonLabel}</button>${active&&promo.stock===0&&regular?`<button class="last-call-regular" data-regular-add="${menu.id}">Pesan harga normal · ${rupiah(menu.price)}</button>`:''}</div></article>`;
 }
 function popupPromoCard(menu,state){return promoMenuCard(menu,state,true)}
 function updatePromoCards(element,html){if(element.innerHTML===html)return;const scroll=element.scrollLeft;const focused=element.contains(document.activeElement)?document.activeElement:null;const selector=focused?.dataset.promoAdd?`[data-promo-add="${focused.dataset.promoAdd}"]`:focused?.dataset.regularAdd?`[data-regular-add="${focused.dataset.regularAdd}"]`:null;element.innerHTML=html;element.scrollLeft=scroll;if(selector)element.querySelector(selector)?.focus({preventScroll:true})}
-function updateLastCallCountdown(now=new Date()){const remaining=Math.max(0,Math.ceil((Date.parse(jakartaDate(now)+'T17:00:00+07:00')-now.getTime())/1000));$('lastCallCountdown').textContent=[Math.floor(remaining/3600),Math.floor(remaining%3600/60),remaining%60].map(value=>String(value).padStart(2,'0')).join(':')}
+function updateLastCallCountdown(now=new Date()){
+  const active=lastCallHours(now),start=Date.parse(jakartaDate(now)+'T15:00:00+07:00'),target=active?Date.parse(jakartaDate(now)+'T17:00:00+07:00'):now.getTime()<start?start:start+86400000;
+  const remaining=Math.max(0,Math.ceil((target-now.getTime())/1000));$('lastCallCountdownLabel').textContent=active?'Berakhir dalam':'Bisa dipesan dalam';
+  $('lastCallCountdown').textContent=[Math.floor(remaining/3600),Math.floor(remaining%3600/60),remaining%60].map(value=>String(value).padStart(2,'0')).join(':');
+}
 function renderLastCall(state){
-  const menus=activePromoMenus(state),available=availablePromoMenus(state),buyer=currentUser?.role==='buyer',visible=buyer&&menus.length>0;
+  const menus=displayPromoMenus(state),available=availablePromoMenus(state),buyer=currentUser?.role==='buyer',active=lastCallHours(),before=campusMinutes()<900;
   if(!lastCallHours())promoOnly=false;
-  $('lastCallSection').hidden=!visible;$('lastCallBanner').hidden=!visible;$('lastCallFilter').hidden=!visible;
+  $('lastCallSection').hidden=!buyer;$('lastCallBanner').hidden=!buyer;$('lastCallFilter').hidden=!buyer||!active||!menus.length;
   $('lastCallTeaser').hidden=!buyer||campusMinutes()>=900;
-  updatePromoCards($('lastCallFeaturedCards'),visible?menus.slice(0,3).map(menu=>promoMenuCard(menu,state)).join(''):'');updateLastCallCountdown();
+  $('lastCallStatus').textContent=active?'✦ SPESIAL SORE INI':before?'✦ PRATINJAU PROMO':'✦ KEMBALI BESOK';
+  $('lastCallBannerDescription').textContent=active?'Promo pilihan menjelang kantin tutup. Pesan sekarang, ambil sebelum pukul 17.00.':before?'Intip pilihan promo sore hari. Pemesanan dibuka pukul 15.00–17.00 WIB.':'Promo hari ini sudah selesai. Pilihan Hemat Ekstra bisa dipesan kembali besok pukul 15.00.';
+  $('lastCallSelectionNote').textContent=active?'Kuota khusus promo. Pilih favoritmu sebelum habis.':'Harga promo hanya bisa digunakan pukul 15.00–17.00 WIB.';
+  $('lastCallAllPromos').disabled=!active||!menus.length;
+  updatePromoCards($('lastCallFeaturedCards'),buyer?(menus.length?menus.slice(0,3).map(menu=>promoMenuCard(menu,state)).join(''):'<p class="last-call-empty">Pilihan promo sedang disiapkan oleh mitra kampus. Pemesanan tersedia pukul 15.00–17.00 WIB.</p>'):'');updateLastCallCountdown();
   $('lastCallFilter').classList.toggle('active',promoOnly);$('lastCallFilter').setAttribute('aria-pressed',String(promoOnly));
   if($('lastCallDialog').open){if(!buyer||!available.length)closeLastCall();else updatePromoCards($('lastCallCards'),available.slice(0,3).map(menu=>popupPromoCard(menu,state)).join(''));}
 }
@@ -171,7 +182,7 @@ function renderPromoAdmin(state){
   if(!isAdmin())return;
   const menu=menuCatalog.find(menu=>menu.id===selectedPromoMenu),promo=state.promos[menu.id],stock=state.inventory[menu.id];
   $('promoOrderCount').textContent=state.orders.filter(order=>jakartaDate(order.createdAt)===jakartaDate()&&order.items.some(item=>item.promotion==='last-call')).length+' pesanan promo hari ini';
-  $('promoClockStatus').textContent=lastCallHours()?'Jam Last Call sedang aktif · hingga 17.00 WIB.':'Promo tampil untuk pembeli hanya pukul 15.00–17.00 WIB.';
+  $('promoClockStatus').textContent=lastCallHours()?'Jam Last Call sedang aktif · hingga 17.00 WIB.':'Area promo tetap terlihat. Pembelian promo hanya dibuka pukul 15.00–17.00 WIB.';
   $('promoAdminControls').innerHTML=`<div class="promo-controls"><label>Menu kantin<select id="promoMenu" onchange="selectedPromoMenu=this.value;renderPromoAdmin(readOrderState())">${menuCatalog.filter(eligibleLastCall).sort((a,b)=>menuAlphabet.compare(a.name,b.name)).map(item=>`<option value="${item.id}" ${item.id===menu.id?'selected':''}>${escapeHTML(item.name)} · ${item.tenant}</option>`).join('')}</select></label><label>Jenis potongan<select id="promoMode" onchange="updatePromoEditor()"><option value="price" ${promo?.mode==='price'?'selected':''}>Harga promo (Rp)</option><option value="percent" ${!promo||promo.mode==='percent'?'selected':''}>Diskon (%)</option></select></label><label><span id="promoValueLabel">${promo?.mode==='price'?'Harga promo (Rp)':'Diskon (%)'}</span><input id="promoValue" type="number" min="1" max="${promo?.mode==='price'?menu.price-1:99}" step="1" value="${promo?.value||20}" oninput="previewPromoPrice()"></label><label>Stok promo hari ini<input id="promoStock" type="number" min="0" max="100000" step="1" value="${promo?.stock??5}"></label><label class="promo-active-control"><input id="promoActive" type="checkbox" ${promo?.active?'checked':''}> Aktifkan promo</label><button class="category" onclick="saveLastCallPromo()">Simpan promo</button></div><p id="promoPreview" class="management-note"></p><p class="management-note">Stok reguler ${stock.stock} · ${stock.active?'Menu aktif':'Menu tidak tersedia'}. Stok promo terpisah dari stok reguler. Pembelian promo hanya mengurangi stok promo. Kuota yang disimpan diisi ulang setiap hari.</p>`;
   previewPromoPrice();
   $('promoAdminList').innerHTML=Object.entries(state.promos).sort(([a],[b])=>menuAlphabet.compare(menuCatalog.find(menu=>menu.id===a).name,menuCatalog.find(menu=>menu.id===b).name)).map(([id,promo])=>{const item=menuCatalog.find(menu=>menu.id===id),inventory=state.inventory[id];return `<article class="promo-admin-card"><div><span class="dish-type">${item.tenant}</span><h3>${escapeHTML(item.name)}</h3>${menuPriceHTML(item,promo)}<p>Stok promo ${promo.stock} · Stok reguler ${inventory.stock}</p><span class="stock-badge ${promo.stock===0?'stock-empty':!promo.active||!inventory.active?'stock-off':'stock-available'}">${!inventory.active?'Menu tidak tersedia':!promo.active?'Promo nonaktif':promo.stock===0?'Promo habis':'Promo aktif'}</span></div><div class="promo-row-actions"><button class="category" data-edit-promo="${id}">Edit</button><button class="category" data-toggle-promo="${id}" ${!promo.active&&(!inventory.active||promo.stock===0)?'disabled':''}>${promo.active?'Nonaktifkan':'Aktifkan'}</button></div></article>`}).join('');
