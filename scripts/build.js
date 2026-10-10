@@ -18,7 +18,7 @@ export async function buildSite({outDir='dist',env=process.env}={}){
   await writeFile(path.join(outDir,'index.html'),html);
   await writeFile(path.join(outDir,'style.css'),(await readFile('style.css','utf8'))+'\n'+(await readFile('src/overrides.css','utf8')));
   await copyFile('assets/menu-illustrations.png',path.join(outDir,'assets/menu-illustrations.png'));
-  console.log(`Build ready: ${outDir} (${url&&key?'Supabase configured':'reference catalog; online orders disabled'})`);
+  console.log(`Build ready: ${outDir} (${url&&key?'Supabase configured':'local demonstration; no real payment'})`);
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   // Read developer configuration without copying .env files or secrets into dist.

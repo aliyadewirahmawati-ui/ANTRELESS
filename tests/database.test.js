@@ -4,10 +4,15 @@ import {randomUUID} from 'node:crypto';
 import {databaseFixture,ids} from './database-fixture.js';
 let f,db,rpc,asUser;
 const items=(variant=ids.variant,quantity=1,mode='regular')=>JSON.stringify([{variant_id:variant,quantity,price_mode:mode}]);
-const checkout=(user=ids.buyer,payload=items(),key=randomUUID())=>rpc(user,'checkout',[key,payload]);
+const checkout=(user=ids.buyer,payload=items(),key=randomUUID())=>rpc(user,'checkout_with_details',[key,payload,JSON.stringify({payment_method:'on_pickup',terms_version:'2026-10-11'})]);
 const stock=async variant=>(await db.query('select stock from public.menu_variants where id=$1',[variant])).rows[0].stock;
 before(async()=>{f=await databaseFixture();({db,rpc,asUser}=f);});
 after(async()=>{await db?.close();});
+test('Checkout requires terms, rejects unsupported real payments, and cannot bypass the wrapper',async()=>{
+  await assert.rejects(()=>rpc(ids.buyer,'checkout_with_details',[randomUUID(),items(),'{}']),/setujui/);
+  await assert.rejects(()=>rpc(ids.buyer,'checkout_with_details',[randomUUID(),items(),JSON.stringify({payment_method:'qris',terms_version:'2026-10-11'})]),/belum aktif/);
+  await assert.rejects(()=>rpc(ids.buyer,'checkout',[randomUUID(),items()]),/permission denied/);
+});
 test('Signup metadata cannot assign role; buyers cannot directly update role, stock, or orders',async()=>{
   assert.equal((await asUser(ids.buyer,'select role from public.profiles'))[0].role,'buyer');
   for(const sql of ["update public.profiles set role='admin'",'update public.menu_variants set stock=999',"insert into public.kantin_admins(kantin_id,user_id) values('"+ids.kantin+"','"+ids.buyer+"')"]){await assert.rejects(()=>asUser(ids.buyer,sql),/permission denied/);}
@@ -39,14 +44,28 @@ test('RLS isolates buyers and limits admins to assigned canteens including items
   await assert.rejects(()=>rpc(ids.buyer,'update_order',[order.id,'ready',null,'','']),/berwenang/);
   await assert.rejects(()=>rpc(ids.adminOther,'update_order',[order.id,'ready',null,'','']),/berwenang/);
 });
+test('Buyer notes survive aggregation and reload, demo never becomes a paid transaction, and retries cannot replace notes',async()=>{
+  const key=randomUUID();const payload=JSON.stringify([{variant_id:ids.variant,quantity:1,price_mode:'regular',customer_note:'Sambal sedikit'}, {variant_id:ids.variant,quantity:1,price_mode:'regular',customer_note:'Tanpa sambal <script>'}]);
+  const options=JSON.stringify({payment_method:'demo',terms_version:'2026-10-11'});
+  const [order]=await rpc(ids.buyer,'checkout_with_details',[key,payload,options]);
+  assert.equal(order.payment_status,'demo_confirmed');assert.equal(order.payment_method,'demo');assert.equal(order.terms_version,'2026-10-11');
+  const stored=(await asUser(ids.buyer,'select customer_requests,quantity from public.order_items where order_id=$1',[order.id]))[0];
+  assert.equal(stored.quantity,2);assert.deepEqual(stored.customer_requests,[{quantity:1,note:'Sambal sedikit'},{quantity:1,note:'Tanpa sambal <script>'}]);
+  assert.deepEqual(await rpc(ids.buyer,'checkout_with_details',[key,payload,options]),[order]);
+  await assert.rejects(()=>rpc(ids.buyer,'checkout_with_details',[key,payload.replace('Sambal sedikit','Banyak sambal'),options]),/berbeda/);
+  assert.equal((await asUser(ids.other,'select * from public.order_items where order_id=$1',[order.id])).length,0);
+  const before=await stock(ids.variant);
+  await assert.rejects(()=>checkout(ids.buyer,JSON.stringify([{variant_id:ids.variant,quantity:1,price_mode:'regular',customer_note:'x'.repeat(301)}])),/300/);
+  assert.equal(await stock(ids.variant),before);
+});
 test('Status sequence, estimates and cancellation reasons are backend validated',async()=>{
   const order=(await asUser(ids.admin,'select * from public.orders'))[0];
   await assert.rejects(()=>rpc(ids.admin,'update_order',[order.id,'ready',null,'','']),/Urutan/);
   await rpc(ids.admin,'update_order',[order.id,'preparing','2026-10-10T09:30:00Z','Antrean ramai','']);
   await rpc(ids.admin,'update_order',[order.id,'ready','2026-10-10T09:30:00Z','','']);
   await rpc(ids.admin,'update_order',[order.id,'completed',null,'Sudah diserahkan','']);
-  const buyer=(await asUser(ids.buyer,'select * from public.orders'))[0];assert.equal(buyer.status,'completed');
-  assert.equal((await asUser(ids.buyer,'select * from public.order_status_history')).length,4);
+  const buyer=(await asUser(ids.buyer,'select * from public.orders where id=$1',[order.id]))[0];assert.equal(buyer.status,'completed');
+  assert.equal((await asUser(ids.buyer,'select * from public.order_status_history where order_id=$1',[order.id])).length,4);
   await assert.rejects(()=>rpc(ids.admin,'update_order',[order.id,'waiting',null,'','']),/berakhir/);
 });
 test('Cancellation restores waiting stock once, never restores already prepared food',async()=>{

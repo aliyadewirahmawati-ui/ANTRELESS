@@ -8,6 +8,7 @@ export async function databaseFixture(){
     create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
     grant execute on function auth.uid() to anon,authenticated;`);
   await db.exec(await readFile(new URL('../supabase/migrations/202610100001_shared_orders.sql',import.meta.url),'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/202610110001_checkout_details.sql',import.meta.url),'utf8'));
   await db.exec(await readFile(new URL('../supabase/seed.sql',import.meta.url),'utf8'));
   await db.exec(`create or replace function private.business_time() returns timestamptz language sql volatile set search_path='' as $$select '2026-10-10T09:00:00Z'::timestamptz$$;`);
   for(const [label,id] of Object.entries(ids).filter(([name])=>['buyer','other','admin','adminOther'].includes(name)))await db.query(`insert into auth.users(id,email,raw_user_meta_data) values($1,$2,$3)`,[id,label+'@qa.invalid',JSON.stringify({display_name:label,role:'admin'})]);

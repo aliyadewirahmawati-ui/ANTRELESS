@@ -10,10 +10,14 @@ Website makanan dan minuman untuk pelanggan umum dan kantin mana saja. Navy #102
 - Prasmanan/seblak tidak menggunakan harga mulai Rp8.000 sebagai harga final. Enam menu ayam/soto belum memiliki harga; minuman kemasan menunggu merek/ukuran/harga.
 - Placeholder kategori untuk katalog; foto hero hanya ilustrasi.
 - Layanan dokumen dan slot wajib 10 menit dihapus dari alur aktif.
-- Supabase Auth, database bersama, Realtime dan polling menggantikan simulasi bisnis localStorage.
+- Mode daring menggunakan Supabase Auth, database bersama, Realtime dan polling; mode demo terpisah menggunakan data lokal.
 - Checkout menghasilkan satu pesanan per kantin dengan antrean/status/subtotal/perkiraan siap sendiri.
 
-Tanpa konfigurasi Supabase: hanya katalog referensi, login/checkout dinonaktifkan. Transaksi lokal tidak ditampilkan sebagai pesanan online.
+Tanpa konfigurasi Supabase: mode demonstrasi lokal aktif. Gunakan data contoh; akun, sesi, stok, keranjang, nomor antrean dan pesanan disimpan pada browser yang sama. Ini bukan transaksi yang diteruskan ke penjual, otorisasi server, atau pembayaran uang. Harga yang kosong memakai contoh Rp10.000 minuman / Rp15.000 makanan hanya pada mode demo; seed produksi tetap belum terverifikasi.
+
+Panduan akun demo tersedia pada halaman login: pembeli pembeli@antreless.demo / demo12345, admin aliyadewirahmawati@gmail.com / admin. Email admin sudah dicadangkan. Pendaftaran lokal selalu pembeli. Logout untuk berganti peran dan memeriksa status terbaru. Password demo di-hash dengan salt di penyimpanan lokal untuk menghindari teks polos, tetapi data dan role lokal tetap dapat diubah pemilik browser; jangan pakai data pribadi atau password utama. Chrome/Edge modern diperlukan untuk Web Locks dan konteks HTTPS/localhost. Demo mematuhi jam WIB; admin dapat menyesuaikan jam kantin untuk presentasi.
+
+Catatan pembeli maksimal 300 karakter per pilihan tampil pada tas, konfirmasi, riwayat dan dashboard. Pilihan pembayaran: bayar saat ambil (belum lunas) atau simulasi di website (demo_confirmed, bukan paid). Ikon informasi memuat aturan pengambilan, keluhan, refund yang sah, dan larangan pelanggaran; tidak ada nominal denda atau pemblokiran otomatis. Persetujuan dan versinya tersimpan pada pesanan. Gerakan lembut menghormati prefers-reduced-motion.
 
 ## Menjalankan
 
@@ -30,7 +34,7 @@ Gunakan server HTTP, bukan file:// atau Live Server pada source index.html: impo
 ## Setup Supabase
 
 1. Buat proyek Supabase atau gunakan proyek yang tersedia. Migrasi dirancang untuk tabel publik baru; tinjau konflik nama jika database sudah memiliki tabel dengan nama yang sama.
-2. SQL Editor: jalankan supabase/migrations/202610100001_shared_orders.sql secara utuh. Migrasi bersifat transaksional.
+2. SQL Editor: jalankan supabase/migrations/202610100001_shared_orders.sql secara utuh. Migrasi bersifat transaksional. Setelah itu jalankan supabase/migrations/202610110001_checkout_details.sql untuk catatan, persetujuan dan metode pembayaran. Frontend terbaru memakai checkout_with_details; jangan memakai frontend ini pada database tanpa migrasi kedua.
 3. Opsional: jalankan supabase/seed.sql. Seed idempotent dan tidak menimpa perubahan admin atau riwayat nyata saat diulang.
 4. Project Settings / API Keys: ambil Project URL dan publishable key (legacy anon juga didukung).
 5. .env.local:
@@ -44,7 +48,7 @@ Dokumentasi key: https://supabase.com/docs/guides/getting-started/api-keys
 
 Aktifkan Email/Password pada Supabase Auth. Atur Site URL ke domain produksi serta Redirect URLs untuk domain produksi dan localhost yang dipakai. Pendaftaran umum menghasilkan buyer; trigger mengabaikan role dari metadata signup.
 
-Buat akun baru dan konfirmasikan email sesuai konfigurasi Supabase. Akun/password demo lama tidak otomatis menjadi akun Supabase. Password tidak disimpan sendiri dalam profil/localStorage; sesi ditangani SDK Auth.
+Buat akun baru dan konfirmasikan email sesuai konfigurasi Supabase. Akun/password demo lama tidak otomatis menjadi akun Supabase. Pada mode daring password tidak disimpan sendiri dalam profil/localStorage; sesi ditangani SDK Auth. Mode demo lokal terpisah seperti dijelaskan di atas.
 
 Untuk admin yang sebelumnya dipakai, daftarkan aliyadewirahmawati@gmail.com sebagai pengguna Supabase dengan password baru pilihan pemilik. Jangan gunakan password demo versi lama. Setelah terdaftar, pemilik proyek menjalankan SQL tepercaya:
 
@@ -85,7 +89,7 @@ Pembatalan wajib memiliki alasan. Pesanan Menunggu mengembalikan stok sekali; se
 
 ## Last Call
 
-Banner/kartu pratinjau tetap terlihat di luar jam promo; tidak ada diskon/stok bawaan. Admin mengatur promo per varian terverifikasi, harga di bawah normal, periode dalam 15.00–17.00 WIB, kuota dan sisa kuota. Pembelian promo mengurangi stok fisik dan kuota promo bersamaan. Kuota berganti pada transaksi pertama hari berikutnya, tetap dibatasi stok fisik aktual. Promo yang menjadi tidak valid setelah edit varian dinonaktifkan. Backend selalu memvalidasi harga/periode/stok terbaru.
+Banner/kartu pratinjau tetap terlihat di luar jam promo; seed produksi tidak mempunyai diskon/stok bawaan (mode demo lokal memiliki contoh stok 20 dan tiga promo diskon 20% dengan kuota 5). Admin mengatur promo per varian terverifikasi, harga di bawah normal, periode dalam 15.00–17.00 WIB, kuota dan sisa kuota. Pembelian promo mengurangi stok fisik dan kuota promo bersamaan. Kuota berganti pada transaksi pertama hari berikutnya, tetap dibatasi stok fisik aktual. Promo yang menjadi tidak valid setelah edit varian dinonaktifkan. Backend selalu memvalidasi harga/periode/stok terbaru.
 
 ## RLS dan sinkronisasi
 

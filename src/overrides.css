@@ -1,4 +1,48 @@
 /* General canteen ordering extends the established design and shared palette. */
+.info-button,.info-dot{display:inline-grid;place-items:center;border:1.5px solid currentColor;border-radius:50%;font-family:Georgia,serif;font-weight:700;color:var(--primary)}
+.info-button{width:32px;height:32px;flex:0 0 32px;background:var(--highlight-soft);font-size:19px}
+.info-button:hover{background:var(--highlight)}
+.info-dot{width:17px;height:17px;font-size:12px}
+.rules-link,.footer-rules,.inline-rules{background:transparent;color:var(--accent-hover);font-size:12px;line-height:1.6;text-align:left}
+.rules-link{display:flex;align-items:center;gap:9px;margin-top:20px;padding:4px 0}
+.inline-rules{text-decoration:underline;padding:0;font:inherit}
+.footer-rules{padding:0;color:inherit}
+.customer-note-field{display:grid;gap:8px;margin-top:20px;font-size:13px;font-weight:700}
+.customer-note-field>span{font-weight:400;color:var(--muted-text)}
+.customer-note-field textarea{margin-top:3px;min-height:90px}
+.field-help{font-size:11px!important;line-height:1.7!important;color:var(--muted-text);margin-top:10px}
+.buyer-note{color:var(--accent-hover)!important;font-size:11px;overflow-wrap:anywhere;margin-top:5px}
+.dialog-kicker{font-size:10px!important;font-weight:700;letter-spacing:1px;color:var(--accent-hover)}
+.welcome-dialog{width:min(460px,calc(100% - 32px))}
+.welcome-symbol{display:grid;place-items:center;width:64px;height:64px;background:var(--highlight-soft);color:var(--primary);border-radius:20px;font-size:35px;margin:22px 0}
+.welcome-dialog h2{font-size:30px;line-height:1.15;margin-bottom:15px}
+.welcome-points{display:grid;gap:10px;font-size:12px;font-weight:700;margin:22px 0;color:var(--accent-hover)}
+.welcome-dialog>.button{width:100%}
+.rules-list{padding-left:22px;margin:24px 0;display:grid;gap:20px}
+.rules-list h3{font-size:15px;margin-bottom:5px}
+.rules-list p{font-size:12px;color:var(--muted-text)}
+.checkout-review{margin-block:20px}
+.payment-choices{border:0;padding:0;margin:22px 0 0;min-width:0}
+.payment-choices legend{font-size:14px;font-weight:700;margin-bottom:12px}
+.payment-choices label{display:flex;align-items:start;gap:12px;padding:14px;border:1px solid var(--border);border-radius:12px;margin-bottom:10px;cursor:pointer}
+.payment-choices label:has(input:checked){border-color:var(--accent-hover);background:var(--soft-accent)}
+.payment-choices input,.checkout-consent input{accent-color:var(--accent-hover);width:18px;height:18px;flex:0 0 18px;margin:2px 0}
+.payment-choices strong{display:block;font-size:12px;line-height:1.5}
+.payment-choices small{display:block;font-size:11px;line-height:1.6;color:var(--muted-text);margin-top:3px}
+.payment-demo-notice,.payment-status{padding:12px 14px;border-radius:10px;background:var(--highlight-soft);font-size:11px!important;line-height:1.7;margin-top:15px}
+.checkout-consent{display:flex;gap:10px;align-items:start;margin:22px 0;font-size:12px;line-height:1.7}
+.checkout-dialog .button{width:100%}
+.rules-dialog .dialog-heading h2,.checkout-dialog .dialog-heading h2{font-size:clamp(26px,6vw,34px);line-height:1.15}
+.dish,.button,.add,.tenant-button{transition:transform .2s ease,box-shadow .2s ease,background .2s ease}
+@media(hover:hover){.dish:hover{transform:translateY(-5px);box-shadow:var(--shadow)}.button:hover,.add:hover{transform:translateY(-2px)}}
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.revealed{opacity:1;transform:none}
+.floating-label{animation:label-float 6s ease-in-out infinite;--label-tilt:-4deg}
+.label-bottom{--label-tilt:3deg;animation-delay:-3s}
+.service-dialog[open]{animation:dialog-enter .18s ease-out}
+@keyframes label-float{0%,100%{transform:translateY(0) rotate(var(--label-tilt))}50%{transform:translateY(-9px) rotate(var(--label-tilt))}}
+@keyframes dialog-enter{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.floating-label,.service-dialog[open]{animation:none}.dish,.button,.add,.tenant-button{transition:none}}
 .setup-notice{padding:13px 15px;margin-top:18px;border:1px solid var(--glass-border);border-radius:12px;background:var(--glass-soft);color:var(--surface);font-size:12px;line-height:1.6}
 .data-notice{padding:18px 22px;margin-top:30px;border:1px solid var(--highlight);border-radius:12px;background:var(--highlight-soft);color:var(--text);font-size:13px;line-height:1.7}
 .hero h1{font-size:clamp(54px,6.4vw,86px);overflow-wrap:normal}

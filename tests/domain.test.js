@@ -23,6 +23,6 @@ test('No local preview checkout; WIB promo boundaries independent of client time
 });
 test('Draft validation does not import legacy services, malformed quantities or client prices',()=>{
   const draft=[{variant_id:seedVariants[0].id,quantity:2,price_mode:'regular',price:1},{menuId:'print-dokumen',quantity:1},{variant_id:seedVariants[0].id,quantity:-1,price_mode:'regular'}];
-  const normalized=normalizeCart(draft);assert.equal(normalized.length,1);assert.deepEqual(cartPayload(normalized),[{variant_id:seedVariants[0].id,quantity:2,price_mode:'regular'}]);
+  const normalized=normalizeCart(draft);assert.equal(normalized.length,1);assert.deepEqual(cartPayload(normalized),[{variant_id:seedVariants[0].id,quantity:2,price_mode:'regular',customer_note:''}]);
 });
 test('User-controlled names and notes are escaped before rendering',()=>{assert.equal(escapeHTML('<img src=x onerror="alert(1)">'), '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;');});

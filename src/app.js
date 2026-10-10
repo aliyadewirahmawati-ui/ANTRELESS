@@ -1,10 +1,14 @@
-import {supabase,configured} from './supabase.js';
+import {supabase,configured,demoMode} from './supabase.js';
+import {demoAccounts} from './demo.js';
 import {seedKantin,seedMenus,seedVariants} from './catalog.seed.js';
 import {statusLabels,statusActions,collator,rupiah,escapeHTML as e,jakartaDay,jakartaTime,timeSeconds,isOpen,promoAvailable,variantProblem,normalizeCart,cartPayload,reconcileCart,filteredMenus} from './domain.js';
 
 const $=id=>document.getElementById(id);
 const state={session:null,profile:null,memberships:[],kantin:[],menus:[],variants:[],promos:[],orders:[],cart:[],cartError:'',category:'all',kantinId:'all',promoOnly:false,adminKantin:'',buyerFilter:'all',adminFilter:'all',connected:false,channel:null,epoch:0,refreshing:false,refreshAgain:false,checkoutBusy:false,authBusy:false,mode:'login',orderDrafts:new Map()};
-let toastTimer,refreshTimer,clockTimer,pendingKey=null,channelStatus='';
+let toastTimer,refreshTimer,clockTimer,pendingKey=null,channelStatus='',rulesReturn=null;
+const TERMS_VERSION='2026-10-11';
+let paymentMethod='on_pickup';
+let checkoutQuote=new Map();
 const admin=()=>!!state.session && state.profile?.role==='admin';
 const managedKantin=()=>state.kantin.filter(k=>state.memberships.some(m=>m.kantin_id===k.id));
 const variantMenu=v=>state.menus.find(m=>m.id===v?.menu_id);
@@ -16,8 +20,8 @@ function wibInput(value){if(!value)return '';const date=new Date(new Date(value)
 function storageGet(key,fallback){try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}}
 function storageSet(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{showToast('Draft tas tidak dapat disimpan di perangkat ini.');}}
 const draftKey=()=>`antreless-online-draft-v1:${state.session?.user.id||'guest'}`;
-function saveDraft(){storageSet(draftKey(),{cart:state.cart,pendingKey});}
-function loadDraft(){const draft=storageGet(draftKey(),{});state.cart=normalizeCart(draft.cart);pendingKey=typeof draft.pendingKey==='string'?draft.pendingKey:null;}
+function saveDraft(){storageSet(draftKey(),{cart:state.cart,pendingKey,paymentMethod});}
+function loadDraft(){const draft=storageGet(draftKey(),{});state.cart=normalizeCart(draft.cart);pendingKey=typeof draft.pendingKey==='string'?draft.pendingKey:null;paymentMethod=draft.paymentMethod==='demo'?'demo':'on_pickup';}
 function changedCart(){pendingKey=null;state.cartError='';saveDraft();renderCart();}
 function showToast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),5000);}
 function setError(id,message){$(id).textContent=message;$(id).hidden=!message;}
@@ -26,7 +30,7 @@ function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.c
 function resetFilters(){state.category='all';state.kantinId='all';state.promoOnly=false;$('searchInput').value='';renderMenu();}
 function setMode(mode){state.mode=mode;$('nameField').hidden=mode!=='register';$('authName').required=mode==='register';$('confirmField').hidden=mode==='login';$('authConfirm').required=mode!=='login';$('authPassword').autocomplete=mode==='login'?'current-password':'new-password';$('authPassword').minLength=mode==='login'?1:8;$('authTitle').textContent=mode==='register'?'Buat akun pembeli':mode==='recovery'?'Kata sandi baru':'Selamat datang!';$('authSubmit').textContent=mode==='register'?'Buat akun':mode==='recovery'?'Simpan kata sandi':'Masuk';$('loginSwitch').innerHTML=mode==='login'?'Baru di Antreless? <button type="button" data-action="register">Buat akun</button>':'Sudah punya akun? <button type="button" data-action="login">Masuk</button>';$('authError').textContent='';}
 function route(){const recovery=state.mode==='recovery';$('loginScreen').hidden=!!state.session&&!recovery;$('appShell').hidden=!state.session||admin()||recovery;$('adminShell').hidden=!admin()||recovery;$('accountName').textContent=state.profile?.display_name||'Pengunjung';$('accountButton').textContent=state.session?'Keluar':'Masuk';$('adminAccount').textContent=state.profile?.display_name||'Admin';}
-function browse(){$('loginScreen').hidden=true;$('adminShell').hidden=true;$('appShell').hidden=false;renderAll();window.scrollTo({top:0,behavior:'instant'});}
+function browse(){$('loginScreen').hidden=true;$('adminShell').hidden=true;$('appShell').hidden=false;renderAll();window.scrollTo({top:0,behavior:'instant'});maybeWelcome();}
 async function api(result){const {data,error}=await result;if(error)throw error;return data;}
 
 async function refresh(){
@@ -49,7 +53,8 @@ async function refresh(){
       const changed=state.orders.filter(order=>admin()?!previous.has(order.id):previous.has(order.id)&&previous.get(order.id)!==order.status);
       if(changed.length){const first=changed[0];showToast((admin()?'Pesanan baru ANT-'+String(first.queue_number).padStart(3,'0'):statusLabels[first.status])+' · '+first.kantin_name+(changed.length>1?' · '+changed.length+' pembaruan':''));}
     }
-    $('catalogNotice').hidden=true;
+    $('catalogNotice').hidden=!demoMode;
+    if(demoMode)$('catalogNotice').textContent='MODE DEMO · Harga, stok, dan lokasi adalah contoh. Pesanan hanya tersimpan di browser ini; tidak diteruskan ke kantin dan tidak memindahkan uang.';
     const reconciled=reconcileCart(state.cart,state.variants);
     if(reconciled.removed){state.cart=reconciled.cart;pendingKey=null;saveDraft();showToast('Menu yang sudah dihapus dikeluarkan dari tas. Riwayat pesanan tetap tersimpan.');}
     if(admin()){
@@ -80,13 +85,13 @@ async function changeSession(session,event){
   state.session=session;state.profile=null;state.memberships=[];state.orders=[];state.cartError='';state.orderDrafts.clear();state.connected=false;state.buyerFilter='all';state.adminFilter='all';closeDialogs();$('lastOrderNotice').hidden=true;loadDraft();
   if(event==='PASSWORD_RECOVERY')setMode('recovery');else if(state.mode==='recovery')setMode('login');
   route();renderOrders();renderCart();
-  await refresh();if(epoch!==state.epoch)return;route();
+  await refresh();if(epoch!==state.epoch)return;route();if(state.session&&!admin()&&state.mode!=='recovery')maybeWelcome();
   const tables=['kantin','menu','menu_variants','promos','orders','order_items','order_status_history','kantin_admins','profiles'];
   let channel=supabase.channel('antreless:'+epoch);
   tables.forEach(table=>{channel=channel.on('postgres_changes',{event:'*',schema:'public',table},()=>{if(epoch===state.epoch)scheduleRefresh();});});
   state.channel=channel.subscribe(status=>{if(epoch===state.epoch){channelStatus=status;syncLabel();if(status==='SUBSCRIBED')scheduleRefresh();}});
 }
-function syncLabel(){const text=!configured?'Katalog referensi · Pemesanan online belum aktif':!state.session?'Masuk untuk melihat pesananmu.':!state.connected?'Koneksi terputus · Mencoba menyambung kembali':channelStatus==='SUBSCRIBED'?'Pesanan tersinkron otomatis':'Pembaruan otomatis setiap 15 detik';$('syncStatus').textContent=text;$('adminSyncStatus').textContent=text;}
+function syncLabel(){const text=demoMode?'Mode demo · Data lokal pada browser ini. Harga, stok, dan pembayaran adalah simulasi.':!configured?'Katalog referensi · Pemesanan online belum aktif':!state.session?'Masuk untuk melihat pesananmu.':!state.connected?'Koneksi terputus · Mencoba menyambung kembali':channelStatus==='SUBSCRIBED'?'Pesanan tersinkron otomatis':'Pembaruan otomatis setiap 15 detik';$('syncStatus').textContent=text;$('adminSyncStatus').textContent=text;}
 function icon(kind){return `<svg viewBox="0 0 128 128" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${kind==='drink'?'<path d="m43 50 5 60h32l6-60ZM38 50h53M65 50l6-29h17"/><path d="M47 69h35"/>':'<path d="M20 62h88c-4 25-18 42-44 42S24 87 20 62ZM16 62h96M46 29c-8 10 8 13 0 23m20-23c-8 10 8 13 0 23m20-23c-8 10 8 13 0 23"/>'}</svg>`;}
 function media(menu,cls='dish-photo'){return `<div class="category-placeholder ${cls}" role="img" aria-label="Ilustrasi kategori ${e(menu.category)}, bukan foto menu">${icon(menu.kind)}<span>ILUSTRASI ${menu.kind==='drink'?'MINUMAN':'MAKANAN'}</span></div>`;}
 function menuCard(menu,{featured=false,popup=false}={}){
@@ -127,8 +132,9 @@ function cartLine(item,index){
   const variant=state.variants.find(v=>v.id===item.variant_id),menu=variantMenu(variant),kantin=menuKantin(menu),promo=variantPromo(item.variant_id);
   const price=item.price_mode==='promo'?promo?.price:variant?.price;
   const totalQuantity=state.cart.filter(i=>i.variant_id===item.variant_id).reduce((n,i)=>n+i.quantity,0);
-  const problem=variantProblem(menu,variant,kantin,{mode:item.price_mode,promo,quantity:totalQuantity});
-  return {html:`<div class="cart-line"><div><strong>${e(menu?.name||'Menu dihapus')}</strong><small>${e(variant?.name)}${item.price_mode==='promo'?' · Last Call':''}</small><span>${rupiah(price)} / item</span>${problem?`<small class="cart-warning">${e(problem)}</small>`:''}</div><div class="cart-quantity"><button data-action="quantity" data-index="${index}" data-change="-1" aria-label="Kurangi ${e(menu?.name)}">−</button><span>${item.quantity}</span><button data-action="quantity" data-index="${index}" data-change="1" aria-label="Tambah ${e(menu?.name)}">+</button><button data-action="remove" data-index="${index}" aria-label="Hapus ${e(menu?.name)}">×</button></div></div>`,subtotal:Number(price||0)*item.quantity,problem,kantin};
+  const promoQuantity=state.cart.filter(i=>i.variant_id===item.variant_id&&i.price_mode==='promo').reduce((n,i)=>n+i.quantity,0);
+  const problem=totalQuantity>(variant?.stock||0)?'Stok tidak mencukupi.':variantProblem(menu,variant,kantin,{mode:item.price_mode,promo,quantity:item.price_mode==='promo'?promoQuantity:totalQuantity});
+  return {html:`<div class="cart-line"><div><strong>${e(menu?.name||'Menu dihapus')}</strong><small>${e(variant?.name)}${item.price_mode==='promo'?' · Last Call':''}</small><span>${rupiah(price)} / item</span>${item.customer_note?`<small class="buyer-note">Catatan: ${e(item.customer_note)}</small>`:''}${problem?`<small class="cart-warning">${e(problem)}</small>`:''}</div><div class="cart-quantity"><button data-action="quantity" data-index="${index}" data-change="-1" aria-label="Kurangi ${e(menu?.name)}">−</button><span>${item.quantity}</span><button data-action="quantity" data-index="${index}" data-change="1" aria-label="Tambah ${e(menu?.name)}">+</button><button data-action="remove" data-index="${index}" aria-label="Hapus ${e(menu?.name)}">×</button></div></div>`,subtotal:Number(price||0)*item.quantity,problem,kantin};
 }
 function renderCart(){
   const groups=new Map();let total=0;const problems=[];
@@ -149,7 +155,7 @@ function orderCard(order,isAdmin){
   const draft=state.orderDrafts.get(order.id)||{};
   const eta=draft.eta??wibInput(order.estimated_ready_at),note=draft.note??order.admin_note,reason=draft.reason||'';
   const actions=isAdmin&&!['completed','cancelled'].includes(order.status)?`<form class="order-admin-form" data-order-id="${order.id}"><label>Perkiraan siap (WIB)<input type="datetime-local" name="eta" value="${e(eta)}"></label><label>Catatan<input name="note" maxlength="500" value="${e(note)}"></label><label>Alasan pembatalan<input name="reason" maxlength="500" value="${e(reason)}" placeholder="Wajib jika membatalkan"></label><div class="order-admin-actions"><button type="submit" class="category" value="${order.status}">Simpan estimasi / catatan</button>${statusActions[order.status]?`<button type="submit" class="button primary" value="${statusActions[order.status][0]}">${statusActions[order.status][1]}</button>`:''}<button type="submit" class="category cancel-action" value="cancelled">Batalkan</button></div></form>`:'';
-  return `<article class="history-card" data-order-id="${order.id}"><div class="history-card-head"><div><span class="eyebrow">${e(order.kantin_name)}</span><h3 class="receipt-number">${queue}</h3><p>${dateLabel(order.created_at)}<br>${e(order.pickup_location)}</p>${isAdmin?`<p class="receipt-buyer">Pembeli: <b>${e(order.buyer_name)}</b></p>`:''}</div><span class="status-chip status-${order.status}">${statusLabels[order.status]}</span></div><p class="order-message">${e(message)}</p><ul class="receipt-items">${(order.order_items||[]).map(i=>`<li><span>${e(i.menu_name)} <small>${e(i.variant_name)}${i.price_mode==='promo'?' · Last Call':''}</small></span><b>${i.quantity} × ${rupiah(i.unit_price)}</b></li>`).join('')}</ul><div class="history-total"><span>Total kantin</span><strong>${rupiah(order.total)}</strong></div>${order.estimated_ready_at?`<p class="order-estimate">Perkiraan siap: <strong>${dateLabel(order.estimated_ready_at)}</strong><br>Perkiraan dapat berubah saat kantin ramai.</p>`:''}${order.admin_note?`<p class="order-estimate">Catatan: ${e(order.admin_note)}</p>`:''}${order.status==='cancelled'?`<p class="cart-warning">Alasan: ${e(order.cancellation_reason)}</p>`:''}<details class="order-timeline"><summary>Riwayat status · ${dateLabel(order.updated_at)}</summary><ol>${history.map(h=>`<li><b>${statusLabels[h.status]}</b> · ${dateLabel(h.changed_at)}${h.note?`<br>${e(h.note)}`:''}</li>`).join('')}</ol></details>${actions}</article>`;
+  return `<article class="history-card" data-order-id="${order.id}"><div class="history-card-head"><div><span class="eyebrow">${e(order.kantin_name)}</span><h3 class="receipt-number">${queue}</h3><p>${dateLabel(order.created_at)}<br>${e(order.pickup_location)}</p>${isAdmin?`<p class="receipt-buyer">Pembeli: <b>${e(order.buyer_name)}</b></p>`:''}</div><span class="status-chip status-${order.status}">${statusLabels[order.status]}</span></div><p class="order-message">${e(message)}</p><ul class="receipt-items">${(order.order_items||[]).map(i=>`<li><span>${e(i.menu_name)} <small>${e(i.variant_name)}${i.price_mode==='promo'?' · Last Call':''}</small>${(i.customer_requests||[]).map(r=>`<small class="buyer-note">${r.quantity} × catatan: ${e(r.note)}</small>`).join('')}</span><b>${i.quantity} × ${rupiah(i.unit_price)}</b></li>`).join('')}</ul><div class="history-total"><span>Total kantin</span><strong>${rupiah(order.total)}</strong></div><p class="payment-status">${order.payment_method==='demo'?'Demo pembayaran dicoba · Bukan bukti lunas':'Bayar saat ambil · Pembayaran langsung ke kantin'}</p>${order.estimated_ready_at?`<p class="order-estimate">Perkiraan siap: <strong>${dateLabel(order.estimated_ready_at)}</strong><br>Perkiraan dapat berubah saat kantin ramai.</p>`:''}${order.admin_note?`<p class="order-estimate">Catatan: ${e(order.admin_note)}</p>`:''}${order.status==='cancelled'?`<p class="cart-warning">Alasan: ${e(order.cancellation_reason)}</p>`:''}<details class="order-timeline"><summary>Riwayat status · ${dateLabel(order.updated_at)}</summary><ol>${history.map(h=>`<li><b>${statusLabels[h.status]}</b> · ${dateLabel(h.changed_at)}${h.note?`<br>${e(h.note)}`:''}</li>`).join('')}</ol></details>${actions}</article>`;
 }
 function renderOrders(){
   syncLabel();$('buyerFilters').innerHTML=filterButtons('buyer');$('adminFilters').innerHTML=filterButtons('admin');
@@ -193,19 +199,34 @@ function openVariant(menuId,mode){
   closeDialogs();$('variantDialog').showModal();updateVariant();
 }
 function updateVariant(){const form=$('variantForm'),variant=state.variants.find(v=>v.id===form.elements.variant_id.value),menu=variantMenu(variant),promo=variantPromo(variant?.id);const quantity=Number(form.elements.quantity.value),problem=variantProblem(menu,variant,menuKantin(menu),{mode:form.elements.mode.value,promo,quantity});$('variantPrice').textContent=rupiah((form.elements.mode.value==='promo'?promo?.price:variant?.price)*quantity);$('variantError').textContent=problem;$('variantSubmit').disabled=!!problem||!configured;}
+function maybeWelcome(){
+  if(admin()||$('appShell').hidden||document.querySelector('dialog[open]'))return;
+  try{if(localStorage.getItem('antreless-guide-day')===jakartaDay())return;localStorage.setItem('antreless-guide-day',jakartaDay());$('welcomeDialog').showModal();}catch{/* Do not repeat a guide when preferences cannot be stored. */}
+}
+function openCheckout(){
+  if($('checkoutButton').disabled||state.checkoutBusy)return;
+  if(!state.session)return checkout();
+  $('checkoutForm').reset();$('checkoutForm').elements.payment_method.value=paymentMethod;
+  checkoutQuote=new Map(state.cart.map(item=>[item.variant_id+':'+item.price_mode,item.price_mode==='promo'?variantPromo(item.variant_id)?.price:state.variants.find(v=>v.id===item.variant_id)?.price]));
+  $('checkoutForm').querySelectorAll('[name=payment_method]').forEach(input=>input.disabled=!!pendingKey);
+  $('paymentDemoNotice').hidden=paymentMethod!=='demo';
+  $('checkoutReview').innerHTML=state.cart.map((i,index)=>{const line=cartLine(i,index);return line.html.replace(/<div class="cart-quantity">.*?<\/div>/,`<strong>${i.quantity} ×<br>${rupiah(line.subtotal)}</strong>`);}).join('')+`<div class="history-total"><span>Total seluruh kantin</span><strong>${$('total').textContent}</strong></div>`;
+  $('checkoutError').textContent='';closeDialogs();$('checkoutDialog').showModal();
+}
 async function checkout(){
   if(state.checkoutBusy)return;
   if(!state.session){closeDialogs();$('appShell').hidden=true;$('loginScreen').hidden=false;showToast('Masuk terlebih dahulu untuk memesan.');return;}
   if(!configured||!state.connected||!state.cart.length){showToast('Pesanan online belum dapat dikirim.');return;}
+  if(!$('checkoutConsent').checked){$('checkoutError').textContent='Baca dan setujui panduan pemesanan terlebih dahulu.';return;}
   if(state.cart.some((item,index)=>cartLine(item,index).problem)){renderCart();showToast('Periksa ketersediaan menu dalam tas.');return;}
-  state.checkoutBusy=true;const epoch=state.epoch;pendingKey ||= crypto.randomUUID();saveDraft();renderCart();
+  state.checkoutBusy=true;$('confirmCheckout').disabled=true;$('checkoutForm').querySelectorAll('[name=payment_method]').forEach(input=>input.disabled=true);const epoch=state.epoch;pendingKey ||= crypto.randomUUID();saveDraft();renderCart();
   try{
-    const orders=await api(supabase.rpc('checkout',{p_key:pendingKey,p_items:cartPayload(state.cart,item=>item.price_mode==='promo'?variantPromo(item.variant_id)?.price:state.variants.find(v=>v.id===item.variant_id)?.price)}));
+    const orders=await api(supabase.rpc('checkout_with_details',{p_key:pendingKey,p_items:cartPayload(state.cart,item=>checkoutQuote.get(item.variant_id+':'+item.price_mode)),p_options:{terms_version:TERMS_VERSION,payment_method:paymentMethod}}));
     if(epoch!==state.epoch)return;
     if(!Array.isArray(orders)||!orders.length)throw Error('Server belum mengonfirmasi pesanan. Tas tetap disimpan.');
-    state.cart=[];state.cartError='';pendingKey=null;saveDraft();$('lastOrderNotice').textContent='Pesanan berhasil tersimpan: '+orders.map(o=>o.kantin_name+' · ANT-'+String(o.queue_number).padStart(3,'0')).join(', ')+'. Pantau kesiapan setiap kantin di bawah ini.';$('lastOrderNotice').hidden=false;showToast('Pesanan berhasil tersimpan di database.');await refresh();$('pesanan-saya').scrollIntoView({behavior:'smooth'});
-  }catch(error){if(epoch===state.epoch){state.cartError=humanError(error)+' Tas tetap disimpan; coba lagi untuk melanjutkan permintaan yang sama.';showToast(humanError(error));}}
-  finally{state.checkoutBusy=false;renderCart();}
+    state.cart=[];state.cartError='';pendingKey=null;saveDraft();closeDialogs();$('lastOrderNotice').textContent='Pesanan berhasil tersimpan: '+orders.map(o=>o.kantin_name+' · ANT-'+String(o.queue_number).padStart(3,'0')).join(', ')+'. Pantau kesiapan setiap kantin di bawah ini.';$('lastOrderNotice').hidden=false;showToast(demoMode?'Pesanan demo tersimpan di browser ini.':'Pesanan berhasil tersimpan di database.');await refresh();$('pesanan-saya').scrollIntoView({behavior:'smooth'});
+  }catch(error){if(epoch===state.epoch){state.cartError=humanError(error)+' Tas tetap disimpan; coba lagi untuk melanjutkan permintaan yang sama.';$('checkoutError').textContent=humanError(error);showToast(humanError(error));}}
+  finally{state.checkoutBusy=false;$('confirmCheckout').disabled=false;renderCart();}
 }
 function openMenuEditor(id){const menu=state.menus.find(m=>m.id===id),form=$('menuForm');if(!menu&&!state.adminKantin)return showToast('Tambahkan atau pilih kantin terlebih dahulu.');form.reset();form.elements.id.value=menu?.id||'';form.elements.kantin_id.value=menu?.kantin_id||state.adminKantin;form.elements.name.value=menu?.name||'';form.elements.category.value=menu?.category||'';form.elements.kind.value=menu?.kind||'food';form.elements.note.value=menu?.confirmation_note||'Perlu konfirmasi';form.elements.active.checked=menu?.active||false;form.elements.verified.checked=menu?.is_verified||false;$('menuError').textContent='';$('menuDialog').showModal();}
 function openVariantEditor(id,menuId){const variant=state.variants.find(v=>v.id===id),form=$('variantEditorForm');form.reset();form.elements.id.value=variant?.id||'';form.elements.menu_id.value=variant?.menu_id||menuId;form.elements.name.value=variant?.name||'';form.elements.price.value=variant?.price??'';form.elements.stock.value=variant?.stock??0;form.elements.active.checked=variant?.active||false;form.elements.verified.checked=variant?.price_verified||false;$('variantEditorError').textContent='';$('variantEditorDialog').showModal();}
@@ -220,6 +241,7 @@ async function saveForm(form,rpc,args,errorId,success){
 document.addEventListener('click',async event=>{
   const button=event.target.closest('[data-action]');if(!button||button.disabled)return;
   const {action,id,index,change,mode}=button.dataset;
+  if(state.checkoutBusy&&['quantity','remove','pick','checkout','close-dialog','rules'].includes(action))return;
   try{
     if(action==='password'){const visible=$('authPassword').type==='password';$('authPassword').type=visible?'text':'password';button.querySelector('.password-eye').toggleAttribute('hidden',visible);button.querySelector('.password-eye-off').toggleAttribute('hidden',!visible);button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Sembunyikan kata sandi':'Tampilkan kata sandi');}
     else if(action==='register'||action==='login')setMode(action);
@@ -233,9 +255,12 @@ document.addEventListener('click',async event=>{
     else if(action==='promo-filter'){state.promoOnly=!state.promoOnly;closeDialogs();renderMenu();$('menu').scrollIntoView({behavior:'smooth'});}
     else if(action==='pick')openVariant(id,mode);
     else if(action==='close-dialog')button.closest('dialog')?.close();
-    else if(action==='quantity'){const item=state.cart[Number(index)];if(!item)return;item.quantity+=Number(change);if(item.quantity<1)state.cart.splice(Number(index),1);if(item.quantity>99)item.quantity=99;changedCart();}
+    else if(action==='quantity'){const item=state.cart[Number(index)];if(!item)return;const next=item.quantity+Number(change);const variant=state.variants.find(v=>v.id===item.variant_id);const combined=state.cart.filter(i=>i.variant_id===item.variant_id).reduce((n,i)=>n+i.quantity,0)+Number(change);if(next>99||Number(change)>0&&(combined>(variant?.stock||0)||state.cart.filter(i=>i.variant_id===item.variant_id&&i.price_mode===item.price_mode).reduce((n,i)=>n+i.quantity,0)+Number(change)>99))return showToast('Jumlah tidak dapat melebihi stok atau 99 per pilihan.');item.quantity=next;if(next<1)state.cart.splice(Number(index),1);changedCart();}
     else if(action==='remove'){state.cart.splice(Number(index),1);changedCart();}
-    else if(action==='checkout')await checkout();
+    else if(action==='checkout')openCheckout();
+    else if(action==='rules'){rulesReturn=$('checkoutDialog').open?'checkoutDialog':null;closeDialogs();$('rulesDialog').showModal();}
+    else if(action==='close-rules'){$('rulesDialog').close();if(rulesReturn)$(rulesReturn).showModal();rulesReturn=null;}
+    else if(action==='welcome-done'){$('welcomeDialog').close();$('menu').scrollIntoView({behavior:'smooth'});}
     else if(action==='buyer-filter'){state.buyerFilter=id;renderOrders();}
     else if(action==='admin-filter'){state.adminFilter=id;renderOrders();}
     else if(action==='new-menu')openMenuEditor();
@@ -250,7 +275,11 @@ $('searchInput').addEventListener('input',renderMenu);
 $('adminKantin').addEventListener('change',event=>{state.adminKantin=event.target.value;$('kantinForm').dataset.dirty='';renderManagement();renderOrders();});
 $('kantinForm').addEventListener('input',()=>{$('kantinForm').dataset.dirty='true';});
 $('variantForm').addEventListener('input',updateVariant);
-$('variantForm').addEventListener('submit',event=>{event.preventDefault();const form=event.target,variantId=form.elements.variant_id.value,quantity=Number(form.elements.quantity.value),priceMode=form.elements.mode.value;if(!form.reportValidity()||$('variantSubmit').disabled)return;const existing=state.cart.find(i=>i.variant_id===variantId&&i.price_mode===priceMode);if(existing){if(existing.quantity+quantity>99)return showToast('Maksimal 99 per pilihan.');existing.quantity+=quantity;}else state.cart.push({variant_id:variantId,quantity,price_mode:priceMode});changedCart();$('variantDialog').close();showToast('Pilihan ditambahkan ke tas.');});
+$('variantForm').addEventListener('submit',event=>{event.preventDefault();const form=event.target,variantId=form.elements.variant_id.value,quantity=Number(form.elements.quantity.value),priceMode=form.elements.mode.value;if(!form.reportValidity()||$('variantSubmit').disabled)return;const note=form.elements.customer_note.value.trim();const variant=state.variants.find(v=>v.id===variantId);const count=state.cart.filter(i=>i.variant_id===variantId).reduce((n,i)=>n+i.quantity,0);if(state.cart.filter(i=>i.variant_id===variantId&&i.price_mode===priceMode).reduce((n,i)=>n+i.quantity,0)+quantity>99)return showToast('Maksimal 99 per pilihan.');if(count+quantity>variant.stock)return showToast('Jumlah seluruh pilihan ini melebihi stok tersedia.');const existing=state.cart.find(i=>i.variant_id===variantId&&i.price_mode===priceMode&&(i.customer_note||'')===note);if(existing){if(existing.quantity+quantity>99)return showToast('Maksimal 99 per pilihan.');existing.quantity+=quantity;}else state.cart.push({variant_id:variantId,quantity,price_mode:priceMode,customer_note:note});changedCart();$('variantDialog').close();showToast('Pilihan ditambahkan ke tas.');});
+$('checkoutForm').addEventListener('submit',event=>{event.preventDefault();if(!event.target.reportValidity())return;checkout();});
+$('checkoutDialog').addEventListener('cancel',event=>{if(state.checkoutBusy)event.preventDefault();});
+$('checkoutForm').addEventListener('change',event=>{if(event.target.name==='payment_method'){if(state.checkoutBusy)return;paymentMethod=event.target.value;pendingKey=null;saveDraft();$('paymentDemoNotice').hidden=paymentMethod!=='demo';$('confirmCheckout').firstChild.textContent=paymentMethod==='demo'?'Konfirmasi demo & pesanan ':'Konfirmasi pesanan ';}});
+$('rulesDialog').addEventListener('cancel',event=>{if(rulesReturn){event.preventDefault();$('rulesDialog').close();$(rulesReturn).showModal();rulesReturn=null;}});
 $('authForm').addEventListener('submit',async event=>{
   event.preventDefault();if(state.authBusy||!configured)return;if(!$('authForm').reportValidity())return;
   const email=$('authEmail').value.trim(),password=$('authPassword').value;
@@ -280,6 +309,7 @@ document.addEventListener('submit',async event=>{
 });
 async function init(){
   loadDraft();setMode('login');$('authSubmit').disabled=!configured;
+  if(demoMode){$('connectionNotice').hidden=false;$('connectionNotice').innerHTML=`<strong>Mode demo lokal</strong><p>Gunakan data contoh. Akun dan pesanan hanya tersimpan di browser ini; tidak ada transaksi uang.</p><details><summary>Panduan akun demo</summary><p>Pembeli: ${e(demoAccounts.buyer.email)}<br>Kata sandi: ${e(demoAccounts.buyer.password)}</p><p>Admin: ${e(demoAccounts.admin.email)}<br>Kata sandi: ${e(demoAccounts.admin.password)}</p><p>Masuk dengan akun pembeli, buat pesanan, lalu keluar dan masuk sebagai admin untuk memperbarui status. Akun baru selalu pembeli.</p></details>`;}
   const legacy=['antreless-carts-v1','antreless-orders-v2','antreless-demo-orders-v1'].some(key=>{try{return !!localStorage.getItem(key);}catch{return false;}});$('legacyNotice').hidden=!legacy;
   if(!configured){state.kantin=structuredClone(seedKantin);state.menus=structuredClone(seedMenus);state.variants=structuredClone(seedVariants);$('connectionNotice').hidden=false;$('connectionNotice').textContent='Pemesanan online belum aktif. Kamu bisa melihat katalog referensi; akun dan pesanan akan tersedia setelah layanan terhubung.';$('catalogNotice').hidden=false;$('catalogNotice').textContent='Katalog referensi dari transkripsi · Kantin Demo · Menu dan harga masih perlu konfirmasi. Belum menerima transaksi.';renderAll();}
   else{
@@ -293,4 +323,10 @@ async function init(){
 window.addEventListener('online',()=>{if(configured)refresh();});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&configured)refresh();});
 window.addEventListener('pagehide',()=>{cleanup();clearInterval(clockTimer);});
+function setupMotion(){
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('revealed');observer.unobserve(entry.target);}});},{threshold:0.08});
+  document.querySelectorAll('.hero-copy,.hero-visual,.product-heading,.steps article,.cta-grid').forEach(el=>{el.classList.add('reveal');observer.observe(el);});
+}
+setupMotion();
 window.appReady=init();

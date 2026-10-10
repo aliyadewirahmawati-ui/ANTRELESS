@@ -24,15 +24,15 @@ try{
   let observed=false;
   const channel=admin.channel('integration-'+randomUUID()).on('postgres_changes',{event:'INSERT',schema:'public',table:'orders',filter:'kantin_id=eq.'+kantin.id},()=>{observed=true;}).subscribe();
   await waitFor(()=>channel.state==='joined');
-  const request={p_key:randomUUID(),p_items:[{variant_id:variant.id,quantity:1,price_mode:'regular'}]};
-  const result=await checked(buyer.rpc('checkout',request));assert.equal(result.length,1);const order=result[0];assert.equal(order.total,12000);
-  assert.deepEqual(await checked(buyer.rpc('checkout',request)),result);await waitFor(()=>observed);
+  const request={p_options:{payment_method:'on_pickup',terms_version:'2026-10-11'},p_key:randomUUID(),p_items:[{variant_id:variant.id,quantity:1,price_mode:'regular'}]};
+  const result=await checked(buyer.rpc('checkout_with_details',request));assert.equal(result.length,1);const order=result[0];assert.equal(order.total,12000);
+  assert.deepEqual(await checked(buyer.rpc('checkout_with_details',request)),result);await waitFor(()=>observed);
   assert.equal((await checked(admin.from('orders').select('*').eq('id',order.id))).length,1);
   assert.equal((await checked(other.from('orders').select('*').eq('id',order.id))).length,0);
   assert.equal((await checked(other.from('order_items').select('*').eq('order_id',order.id))).length,0);
   for(const status of ['preparing','ready','completed']){await checked(admin.rpc('update_order',{p_order_id:order.id,p_status:status,p_eta:null,p_note:'Uji status',p_reason:''}));await waitFor(async()=>one(await checked(buyer.from('orders').select('*').eq('id',order.id)))?.status===status);}
   await checked(admin.rpc('save_variant',{p_id:variant.id,p_menu:menu.id,p_name:'Pilihan A',p_price:12000,p_stock:1,p_active:true,p_verified:true}));
-  const races=await Promise.all([buyer,other].map(client=>client.rpc('checkout',{p_key:randomUUID(),p_items:[{variant_id:variant.id,quantity:1,price_mode:'regular'}]})));
+  const races=await Promise.all([buyer,other].map(client=>client.rpc('checkout_with_details',{p_options:{payment_method:'on_pickup',terms_version:'2026-10-11'},p_key:randomUUID(),p_items:[{variant_id:variant.id,quantity:1,price_mode:'regular'}]})));
   assert.equal(races.filter(r=>!r.error).length,1);
   assert.equal(one(await checked(admin.from('menu_variants').select('stock').eq('id',variant.id))).stock,0);
   await checked(buyer.auth.signOut());await checked(buyer.auth.signInWithPassword({email:process.env.ANTRELESS_TEST_BUYER_EMAIL,password:process.env.ANTRELESS_TEST_BUYER_PASSWORD}));

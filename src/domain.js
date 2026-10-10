@@ -25,13 +25,14 @@ export function variantProblem(menu,variant,kantin,{promo,mode='regular',date=ne
   if(!isOpen(kantin,date))return 'Kantin tutup atau sedang menjeda pesanan baru.';
   if(variant.stock<quantity)return 'Stok tidak mencukupi.';
   if(mode==='promo'&&!promoAvailable(promo,variant,date))return 'Promo belum aktif, sudah berakhir, atau habis.';
+  if(mode==='promo'&&quantity>(promo.stock_date===jakartaDay(date)?promo.remaining_stock:promo.daily_quota))return 'Stok promo tidak mencukupi.';
   return '';
 }
 export function normalizeCart(value) {
   if(!Array.isArray(value))return [];
-  return value.filter(item=>item&&typeof item.variant_id==='string'&&/^[0-9a-f-]{36}$/i.test(item.variant_id)&&Number.isSafeInteger(item.quantity)&&item.quantity>0&&item.quantity<=99&&['regular','promo'].includes(item.price_mode));
+  return value.filter(item=>item&&typeof item.variant_id==='string'&&/^[0-9a-f-]{36}$/i.test(item.variant_id)&&Number.isSafeInteger(item.quantity)&&item.quantity>0&&item.quantity<=99&&['regular','promo'].includes(item.price_mode)).map(item=>({variant_id:item.variant_id,quantity:item.quantity,price_mode:item.price_mode,customer_note:typeof item.customer_note==='string'?item.customer_note.trim().slice(0,300):''}));
 }
-export function cartPayload(cart,getPrice) {return cart.map(item=>({variant_id:item.variant_id,quantity:item.quantity,price_mode:item.price_mode,...(getPrice?{expected_unit_price:getPrice(item)}:{})}));}
+export function cartPayload(cart,getPrice) {return normalizeCart(cart).map(item=>({...item,...(getPrice?{expected_unit_price:getPrice(item)}:{})}));}
 export function reconcileCart(cart,variants) {
   const ids=new Set(variants.map(v=>v.id));
   return {cart:normalizeCart(cart).filter(item=>ids.has(item.variant_id)),removed:cart.some(item=>!ids.has(item.variant_id))};

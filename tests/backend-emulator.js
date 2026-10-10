@@ -27,10 +27,10 @@ export async function backendEmulator(){
       if(url.pathname.startsWith('/rest/v1/rpc/')){
         if(!user)return send({message:'Masuk terlebih dahulu.'},401);
         const name=url.pathname.split('/').at(-1);
-        const signatures={checkout:['p_key','p_items'],update_order:['p_order_id','p_status','p_eta','p_note','p_reason'],save_kantin:['p_id','p_name','p_location','p_opens','p_closes','p_accept','p_demo'],save_menu:['p_id','p_kantin','p_name','p_category','p_kind','p_active','p_verified','p_note'],save_variant:['p_id','p_menu','p_name','p_price','p_stock','p_active','p_verified'],save_promo:['p_variant','p_price','p_quota','p_remaining','p_starts','p_ends','p_active']};
+        const signatures={checkout_with_details:['p_key','p_items','p_options'],update_order:['p_order_id','p_status','p_eta','p_note','p_reason'],save_kantin:['p_id','p_name','p_location','p_opens','p_closes','p_accept','p_demo'],save_menu:['p_id','p_kantin','p_name','p_category','p_kind','p_active','p_verified','p_note'],save_variant:['p_id','p_menu','p_name','p_price','p_stock','p_active','p_verified'],save_promo:['p_variant','p_price','p_quota','p_remaining','p_starts','p_ends','p_active']};
         if(!signatures[name])return send({message:'Unknown RPC'},404);
-        if(name==='checkout'&&blockCheckout)return send({message:'Gangguan jaringan uji'},503);
-        const params=signatures[name].map(k=>k==='p_items'?JSON.stringify(data[k]):data[k]);return send(await rpc(user,name,params));
+        if(name==='checkout_with_details'&&blockCheckout)return send({message:'Gangguan jaringan uji'},503);
+        const params=signatures[name].map(k=>['p_items','p_options'].includes(k)?JSON.stringify(data[k]):data[k]);return send(await rpc(user,name,params));
       }
       const table=url.pathname.replace('/rest/v1/','');
       if(!['kantin','menu','menu_variants','promos','profiles','kantin_admins','orders','order_items','order_status_history'].includes(table))return send({message:'Not found'},404);
