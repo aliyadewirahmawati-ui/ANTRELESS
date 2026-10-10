@@ -221,7 +221,7 @@ document.addEventListener('click',async event=>{
   const button=event.target.closest('[data-action]');if(!button||button.disabled)return;
   const {action,id,index,change,mode}=button.dataset;
   try{
-    if(action==='password'){const visible=$('authPassword').type==='password';$('authPassword').type=visible?'text':'password';button.textContent=visible?'Sembunyikan':'Lihat';button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Sembunyikan kata sandi':'Tampilkan kata sandi');}
+    if(action==='password'){const visible=$('authPassword').type==='password';$('authPassword').type=visible?'text':'password';button.querySelector('.password-eye').toggleAttribute('hidden',visible);button.querySelector('.password-eye-off').toggleAttribute('hidden',!visible);button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Sembunyikan kata sandi':'Tampilkan kata sandi');}
     else if(action==='register'||action==='login')setMode(action);
     else if(action==='browse')browse();
     else if(action==='account'){if(state.session){await api(supabase.auth.signOut());await changeSession(null,'SIGNED_OUT');}else{$('appShell').hidden=true;$('loginScreen').hidden=false;}}

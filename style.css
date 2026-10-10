@@ -72,9 +72,11 @@
 .login-input-wrap>span.input-icon{display:grid;place-items:center;font-size:18px;color:var(--primary)}
 .login-input-wrap input{width:100%;min-width:0;padding:12px 0;border:0;outline:0;background:transparent;color:var(--text);font-size:13px}
 .login-input-wrap input::placeholder{color:var(--muted-text);opacity:1}
-.password-toggle{flex:0 0 auto;padding:7px 0 7px 6px;background:transparent;color:var(--primary-hover);font-size:11px;font-weight:700}
-.password-toggle:hover,.forgot-link:hover,.login-switch button:hover{color:inherit;text-decoration:underline}
-.login-options{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:15px 3px 1px}
+.password-toggle{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;padding:0;background:transparent;color:var(--primary-hover);border-radius:50%}
+.password-toggle svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.password-toggle:hover{background:var(--soft-accent);color:var(--primary)}
+.forgot-link:hover,.login-switch button:hover{color:inherit;text-decoration:underline}
+.login-options{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin:15px 3px 1px}
 .remember-option{display:flex;align-items:center;gap:8px;color:var(--soft-accent);font-size:11px;cursor:pointer}
 .remember-option input{width:15px;height:15px;margin:0;accent-color:var(--primary)}
 .forgot-link{padding:4px 0;background:transparent;color:var(--surface);font-size:11px;font-weight:700}
