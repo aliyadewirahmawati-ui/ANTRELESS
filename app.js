@@ -259,14 +259,12 @@ function renderMenu(){
   $('menuList').innerHTML=visible.length?visible.map(menu=>menuRow(menu,state)).join(''):'<div class="no-result">Pilihan belum ditemukan.<br>Coba kata lain atau reset filter.</div>';
   document.querySelectorAll('.category-bar [data-category]').forEach(button=>{const active=button.dataset.category===category;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
   document.querySelectorAll('.tenant[data-tenant]').forEach(card=>{card.hidden=!!q&&!menus[card.dataset.tenant].some(menu=>menuMatchesQuery(menu,q))});
-  $('partnerSelect').value=tenant;
 }
 function chooseCategory(value){if(!Object.hasOwn(categoryNames,value))return;category=value;renderMenu()}
 function resetFilters(){promoOnly=false;tenant='all';category='all';$('searchInput').value='';renderMenu()}
 function searchMenus(){renderMenu()}
 function clearSearch(){$('searchInput').value='';renderMenu();$('searchInput').focus()}
 function chooseTenant(value){if(value!=='all'&&!partnerNames.includes(value))return;tenant=value;category='all';renderMenu()}
-function choosePartnerFilter(value){if(value!=='all'&&!partnerNames.includes(value))return;tenant=value;renderMenu()}
 function saveCart(){
   if(currentUser?.role!=='buyer')return;
   try{const all=readLocal(cartKey,{});all[currentUser.email]={items:cart,slot};localStorage.setItem(cartKey,JSON.stringify(all))}catch{cartMessage='Keranjang belum dapat disimpan. Pastikan penyimpanan browser aktif.';}

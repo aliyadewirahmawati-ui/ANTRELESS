@@ -33,7 +33,7 @@ Satu halaman login tanpa pilihan peran:
 - Kantin: 45 menu makanan dan minuman, termasuk Aneka Nasi, Bakmi, Bakso dan Soto, Jajanan, Minuman, dan Roti.
 - Fotokopi & Print Kampus: Fotokopi, Print Dokumen, Scan Dokumen, Jilid Spiral, Laminating.
 
-Enam kategori makanan tetap tersedia: Aneka Nasi (8), Bakmi (5), Bakso dan Soto (6), Jajanan (8), Minuman (9), Roti (9). Panel Filter produk memisahkan chip Jenis (Semua menjadi pilihan pertama, ditambah Layanan Kampus) dan dropdown Mitra kampus. Pencarian meliputi nama, deskripsi, kategori, serta mitra kampus dan dapat digabungkan dengan chip Jenis serta dropdown Mitra kampus. Semua hasil A–Z. Harga makanan lama dan foto tetap digunakan; pilihan lain memakai ilustrasi SVG kategori.
+Enam kategori makanan tetap tersedia: Aneka Nasi (8), Bakmi (5), Bakso dan Soto (6), Jajanan (8), Minuman (9), Roti (9). Panel Filter produk berisi chip Jenis (Semua menjadi pilihan pertama, ditambah Layanan Kampus), tanpa dropdown Mitra kampus. Pencarian meliputi nama, deskripsi, kategori, serta mitra kampus dan dapat digabungkan dengan chip Jenis. Kartu mitra kampus tetap dapat diklik untuk melihat produknya. Semua hasil A–Z. Harga makanan lama dan foto tetap digunakan; pilihan lain memakai ilustrasi SVG kategori.
 
 ## Detail layanan
 
@@ -77,7 +77,7 @@ Data demo awal:
 - Dimsum Mentai (Kantin): Rp14.000 → Rp10.000, kuota 6.
 - Croissant Original (Kantin): Rp12.000 → Rp9.000, kuota 5.
 
-Pop-up "Hemat Ekstra dimulai!" hanya untuk pembeli, maksimal sekali sehari pada browser yang sama, dan hanya jika ada promo aktif dengan stok tersedia. Pop-up menampilkan maksimal tiga menu dan tombol tambah ke keranjang. Lihat semua promo membuka katalog dengan filter promo; filter Jenis, Mitra kampus, dan pencarian tetap dapat digabungkan. Nanti saja menutup pop-up tanpa memunculkannya lagi hari itu. Banner dan tombol filter tetap dapat digunakan saat jam promo.
+Pop-up "Hemat Ekstra dimulai!" hanya untuk pembeli, maksimal sekali sehari pada browser yang sama, dan hanya jika ada promo aktif dengan stok tersedia. Pop-up menampilkan maksimal tiga menu dan tombol tambah ke keranjang. Lihat semua promo membuka katalog dengan filter promo; filter Jenis dan pencarian tetap dapat digabungkan. Nanti saja menutup pop-up tanpa memunculkannya lagi hari itu. Banner dan tombol filter tetap dapat digunakan saat jam promo.
 
 Admin memilih menu kantin, menetapkan harga promo atau diskon 1–99%, stok promo 0–100.000, dan status aktif. Harga harus lebih rendah dari harga normal. Aktivasi memerlukan menu aktif dan stok promo >0. Stok promo terpisah dari stok reguler dan dapat berbeda jumlahnya; promo tetap dapat dibeli ketika stok reguler nol. Setiap pergantian hari, kuota promo diperbarui dari dailyStock secara independen. Menonaktifkan menu keseluruhan juga menonaktifkan penjualannya melalui promo.
 
