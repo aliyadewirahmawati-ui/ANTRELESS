@@ -69,9 +69,9 @@ Admin melihat semua pesanan pada browser/alamat situs yang sama, ringkasan hari 
 
 Reset data demo hari ini memerlukan konfirmasi di dashboard: stok kembali 20, layanan aktif, kapasitas standar 5, pengaturan khusus dihapus, semua slot dibuka, tiga promo Last Call contoh dipulihkan, dan pesanan hari ini dihapus. Akun, keranjang, riwayat hari sebelumnya, serta nomor ANT terakhir dipertahankan. Stok tidak direset otomatis saat berganti hari; gunakan tombol admin untuk memulai ulang demo.
 
-## Last Call: Menu Hemat
+## Last Call: Hemat Ekstra
 
-Promo makanan/minuman layak konsumsi dari Kantin A, B, dan C tampil otomatis setiap hari 15.00 sampai sebelum 17.00 WIB. Layanan Fotokopi & Print Kampus tidak termasuk. Jam mengikuti waktu browser yang dikonversi ke WIB; tidak ada tombol untuk memaksakan jam promo pada aplikasi.
+Promo makanan/minuman layak konsumsi dari Kantin A, B, dan C tampil otomatis setiap hari 15.00 sampai sebelum 17.00 WIB. Layanan Fotokopi & Print Kampus tidak termasuk. Jam mengikuti waktu browser yang dikonversi ke WIB; tidak ada tombol untuk memaksakan jam promo pada aplikasi. Sebelum 15.00, pembeli melihat teaser kecil. Pada jam promo, section khusus sebelum daftar menu menampilkan banner pink/magenta dengan aksen oranye lembut, ilustrasi makanan, countdown per detik hingga 17.00, dan maksimal tiga kartu menu. Kartu tersusun horizontal di desktop dan dapat digeser di HP. Menu stok promo tersedia diprioritaskan; promo aktif yang habis tetap menampilkan "Promo habis".
 
 Data demo awal:
 
@@ -79,13 +79,13 @@ Data demo awal:
 - Dimsum Mentai (Kantin B): Rp14.000 → Rp10.000, kuota 6.
 - Croissant Original (Kantin C): Rp12.000 → Rp9.000, kuota 5.
 
-Pop-up hanya untuk pembeli, maksimal sekali sehari pada browser yang sama, dan hanya jika ada promo aktif dengan stok tersedia. Pop-up menampilkan maksimal tiga menu. Lihat menu hemat membuka katalog dengan filter promo; filter Jenis, Mitra kampus, dan pencarian tetap dapat digabungkan. Nanti saja menutup pop-up tanpa memunculkannya lagi hari itu. Banner dan tombol filter tetap dapat digunakan saat jam promo.
+Pop-up "Hemat Ekstra dimulai!" hanya untuk pembeli, maksimal sekali sehari pada browser yang sama, dan hanya jika ada promo aktif dengan stok tersedia. Pop-up menampilkan maksimal tiga menu dan tombol tambah ke keranjang. Lihat semua promo membuka katalog dengan filter promo; filter Jenis, Mitra kampus, dan pencarian tetap dapat digabungkan. Nanti saja menutup pop-up tanpa memunculkannya lagi hari itu. Banner dan tombol filter tetap dapat digunakan saat jam promo.
 
-Admin memilih menu kantin, menetapkan harga promo atau diskon 1–99%, stok promo, dan status aktif. Harga harus lebih rendah dari harga normal. Aktivasi memerlukan menu aktif dan stok utama serta stok promo >0. Stok promo merupakan bagian dari stok utama; kuota tidak dapat disimpan melebihi stok utama. Setiap pergantian hari, kuota promo diperbarui dari dailyStock, dibatasi stok utama aktual. Menambah kuota promo tidak menambah stok fisik makanan.
+Admin memilih menu kantin, menetapkan harga promo atau diskon 1–99%, stok promo 0–100.000, dan status aktif. Harga harus lebih rendah dari harga normal. Aktivasi memerlukan menu aktif dan stok promo >0. Stok promo terpisah dari stok reguler dan dapat berbeda jumlahnya; promo tetap dapat dibeli ketika stok reguler nol. Setiap pergantian hari, kuota promo diperbarui dari dailyStock secara independen. Menonaktifkan menu keseluruhan juga menonaktifkan penjualannya melalui promo.
 
-Checkout promo mengurangi stok promo dan stok utama dalam satu penulisan dengan pesanan/nomor antrean. Jumlah promo tidak boleh melebihi salah satu stok tersebut. Promo habis menampilkan Habis hari ini dan hilang dari pop-up. Admin melihat jumlah checkout yang mengandung menu promo pada hari ini WIB.
+Checkout promo hanya mengurangi stok promo, sedangkan pembelian harga normal hanya mengurangi stok reguler. Pesanan, nomor antrean, dan kedua stok disimpan dalam satu penulisan atomik. Menu yang sama dapat masuk keranjang dengan harga promo dan harga normal sebagai dua baris terpisah, masing-masing dibatasi stoknya. Promo habis hilang dari pop-up, menampilkan "Promo habis" pada section/katalog, dan menu tetap dapat dipesan dengan harga normal jika stok reguler tersedia. Admin melihat jumlah checkout yang mengandung menu promo pada hari ini WIB.
 
-Slot promo harus belum berakhir dan berakhir paling lambat 17.00 (slot terakhir 16.50–17.00). Slot yang sudah lewat nonaktif. Pada 17.00, pop-up/banner/harga promo ditutup otomatis. Item promo kedaluwarsa, dinonaktifkan, atau berubah harga dihapus dari keranjang dengan pesan; tidak otomatis diubah menjadi pembelian harga normal. Untuk harga normal, pembeli menambahkan menu kembali. Riwayat pesanan yang telah dibuat tetap mempertahankan harga dan badge Menu Hemat.
+Slot promo harus belum berakhir dan berakhir paling lambat 17.00 (slot terakhir 16.50–17.00). Slot yang sudah lewat nonaktif. Pada 17.00, pop-up/section/harga promo ditutup otomatis. Item promo kedaluwarsa, dinonaktifkan, atau berubah harga dihapus dari keranjang dengan pesan; tidak otomatis diubah menjadi pembelian harga normal. Untuk harga normal, pembeli menambahkan menu kembali. Riwayat pesanan yang telah dibuat tetap mempertahankan harga dan badge Hemat Ekstra.
 
 State promos per ID menu berisi {active, mode, value, price, dailyStock, stock, stockDate}. Item promo pada keranjang/pesanan menambahkan {promotion: 'last-call', promoDate, originalPrice}; price menyimpan harga promo yang disepakati. Data operasional lama tanpa promos ditambahkan promo demo sekali tanpa mengubah pesanan sebelumnya.
 

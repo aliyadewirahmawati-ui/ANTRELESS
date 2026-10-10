@@ -86,9 +86,9 @@ const lastCallPopupKey='antreless-last-call-popup-v1';
 let promoOnly=false,selectedPromoMenu='nasi-ayam-geprek';
 function campusMinutes(now=new Date()){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Jakarta',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);return Number(parts.find(part=>part.type==='hour').value)*60+Number(parts.find(part=>part.type==='minute').value)}
 function lastCallHours(now=new Date()){const minutes=campusMinutes(now);return minutes>=900&&minutes<1020}
-function eligibleLastCall(menu){return !!menu&&!menu.service&&['Kantin A','Kantin B','Kantin C'].includes(menu.tenant)}
+function eligibleLastCall(menu){return !!menu&&!menu.service&&['aneka-nasi','bakmi','bakso-soto','jajanan','minuman','roti'].includes(menu.category)&&['Kantin A','Kantin B','Kantin C'].includes(menu.tenant)}
 function initialPromos(inventory){
-  return Object.fromEntries([['nasi-ayam-geprek',15000,5],['dimsum-mentai',10000,6],['croissant-original',9000,5]].map(([id,price,stock])=>[id,{active:inventory[id].active&&inventory[id].stock>0,mode:'price',value:price,price,dailyStock:stock,stock:Math.min(stock,inventory[id].stock),stockDate:jakartaDate()}]));
+  return Object.fromEntries([['nasi-ayam-geprek',15000,5],['dimsum-mentai',10000,6],['croissant-original',9000,5]].map(([id,price,stock])=>[id,{active:inventory[id].active,mode:'price',value:price,price,dailyStock:stock,stock,stockDate:jakartaDate()}]));
 }
 function calculatePromoPrice(menu,mode,value){
   if(!eligibleLastCall(menu)||!Number.isSafeInteger(value))throw Error('Pilih menu kantin dan nilai promo berupa angka bulat.');
@@ -102,15 +102,17 @@ function validatePromos(state){
 function hydratePromos(state){
   if(state.promos===undefined)state.promos=initialPromos(state.inventory);
   validatePromos(state);
-  for(const [id,promo]of Object.entries(state.promos))if(promo.stockDate!==jakartaDate()){promo.stockDate=jakartaDate();promo.stock=Math.min(promo.dailyStock,state.inventory[id].stock);}
+  for(const promo of Object.values(state.promos))if(promo.stockDate!==jakartaDate()){promo.stockDate=jakartaDate();promo.stock=promo.dailyStock;}
   return state;
 }
 function currentPromo(menu,state,now=new Date()){
   const promo=state?.promos?.[menu?.id],inventory=state?.inventory[menu?.id];
-  return lastCallHours(now)&&eligibleLastCall(menu)&&promo?.active&&promo.stockDate===jakartaDate(now)&&inventory?.active&&inventory.stock>0?promo:null;
+  return lastCallHours(now)&&eligibleLastCall(menu)&&promo?.active&&promo.stockDate===jakartaDate(now)&&inventory?.active?promo:null;
 }
+function activePromoMenus(state,now=new Date()){return menuCatalog.filter(menu=>currentPromo(menu,state,now)).sort((a,b)=>Number(currentPromo(b,state,now).stock>0)-Number(currentPromo(a,state,now).stock>0)||menuAlphabet.compare(a.name,b.name))}
 function availablePromoMenus(state,now=new Date()){return menuCatalog.filter(menu=>{const promo=currentPromo(menu,state,now);return promo&&promo.stock>0}).sort((a,b)=>menuAlphabet.compare(a.name,b.name))}
 function promoCartQuantity(id){return cart.filter(item=>item.menuId===id&&item.promotion==='last-call').reduce((sum,item)=>sum+item.qty,0)}
+function regularCartQuantity(id){return cart.filter(item=>item.menuId===id&&item.promotion!=='last-call').reduce((sum,item)=>sum+item.qty,0)}
 function promoItemProblem(item,menu,state,now=new Date()){
   if(item.promotion!=='last-call')return '';
   if(!lastCallHours(now)||item.promoDate!==jakartaDate(now))return 'Promo Last Call berakhir atau belum aktif. '+item.name+' dihapus dari tas; tambahkan kembali jika ingin harga normal.';
@@ -120,27 +122,35 @@ function promoItemProblem(item,menu,state,now=new Date()){
   if(item.price!==promo.price||item.originalPrice!==menu.price)return 'Harga promo '+item.name+' berubah. Pilih menu kembali untuk menyetujui harga terbaru.';
   return '';
 }
-function promoReceiptHTML(item){return item.promotion==='last-call'?`<small class="promo-receipt"><span>Menu Hemat</span> <del>${rupiah(item.originalPrice)}</del> → ${rupiah(item.price)} / item</small>`:''}
-function promoStockBadge(menu,state,promo){if(!promo)return stockBadge(menu,state);const stock=Math.min(promo.stock,state.inventory[menu.id].stock),kind=stock===0?'empty':stock<=5?'low':'available',label=stock===0?'Habis hari ini':stock<=5?'Tersisa sedikit':'Tersedia';return `<span class="stock-badge stock-${kind}">${label}${stock?' · '+stock+' stok promo':''}</span>`}
+function promoReceiptHTML(item){return item.promotion==='last-call'?`<small class="promo-receipt"><span>Hemat Ekstra</span> <del>${rupiah(item.originalPrice)}</del> → ${rupiah(item.price)} / item</small>`:''}
+function promoStockBadge(menu,state,promo){if(!promo)return stockBadge(menu,state);return `<span class="stock-badge stock-${promo.stock===0?'empty':promo.stock<=5?'low':'available'}">${promo.stock===0?'Promo habis':'Tersisa '+promo.stock+(menu.category==='minuman'?' minuman':' porsi')}</span>`}
 function menuPriceHTML(menu,promo){return promo?`<span class="price promo-price"><del>${rupiah(menu.price)}</del><strong>${rupiah(promo.price)}</strong></span>`:`<span class="price">${menu.service?'Mulai ':''}${rupiah(menu.price)}</span>`}
 function lastCallSlot(time,now=new Date()){if(!slotList.includes(time))return false;const end=time.split('–')[1].split('.').map(Number),endMinutes=end[0]*60+end[1];return lastCallHours(now)&&endMinutes>campusMinutes(now)&&endMinutes<=1020}
 function choosePromoSlot(state){if(!cart.some(item=>item.promotion==='last-call')||lastCallSlot(slot))return;const partners=[...new Set(cart.map(item=>item.tenant))],available=slotList.find(time=>lastCallSlot(time)&&partners.every(name=>slotInfo(state,name,time).available));if(available)slot=available;}
 function chooseLastCall(){
-  const state=safeState();if(!lastCallHours()||!availablePromoMenus(state).length)return showToast('Belum ada menu hemat yang tersedia saat ini.');
+  const state=safeState();if(!lastCallHours()||!activePromoMenus(state).length)return showToast('Belum ada promo Hemat Ekstra yang aktif saat ini.');
   promoOnly=true;tenant='all';category='all';$('searchInput').value='';closeLastCall();renderMenu();navigateTo('menu');
 }
 function toggleLastCallFilter(){if(promoOnly){promoOnly=false;renderMenu()}else chooseLastCall()}
-function popupPromoCard(menu,state){
-  const promo=currentPromo(menu,state),stock=Math.min(state.inventory[menu.id].stock,promo.stock),visual=menu.photo?`<div class="food-photo last-call-food" aria-hidden="true" style="--photo-x:${menu.photo.x}%;--photo-y:${menu.photo.y}%"></div>`:`<svg class="last-call-food" viewBox="0 0 128 128" aria-hidden="true" fill="var(--soft-accent)" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${categoryIllustrations[menu.category]}</svg>`;
-  return `<article class="last-call-card">${visual}<h3>${escapeHTML(menu.name)}</h3><p>${escapeHTML(menu.tenant)}</p>${menuPriceHTML(menu,promo)}<span class="stock-badge ${stock<=5?'stock-low':'stock-available'}">${stock<=5?'Tersisa sedikit':'Tersedia'} · ${stock}</span></article>`;
+function promoMenuCard(menu,state,popup=false){
+  const promo=currentPromo(menu,state);if(!promo)return '';
+  const discount=Math.max(1,Math.round((menu.price-promo.price)/menu.price*100)),unit=menu.category==='minuman'?'minuman':'porsi',limit=promoCartQuantity(menu.id)>=promo.stock,regular=menuStatus(menu,state).available&&regularCartQuantity(menu.id)<state.inventory[menu.id].stock;
+  const visual=menu.photo?`<div class="food-photo last-call-food" role="img" aria-label="Ilustrasi ${escapeHTML(menu.name)}" style="--photo-x:${menu.photo.x}%;--photo-y:${menu.photo.y}%"></div>`:`<div class="last-call-food last-call-food-illustration" role="img" aria-label="Ilustrasi ${escapeHTML(menu.name)}"><svg viewBox="0 0 128 128" aria-hidden="true" fill="#fff2dc" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${categoryIllustrations[menu.category]}</svg></div>`;
+  return `<article class="last-call-card ${popup?'last-call-popup-card':'last-call-featured-card'}" data-promo-menu="${menu.id}"><div class="last-call-card-media">${visual}<span class="last-call-discount">-${discount}%</span></div><div class="last-call-card-body"><p class="last-call-partner">${escapeHTML(menu.tenant)}</p><h3>${escapeHTML(menu.name)}</h3>${menuPriceHTML(menu,promo)}<p class="last-call-card-stock${promo.stock===0?' sold-out':''}">${promo.stock===0?'Promo habis':'Tersisa '+promo.stock+' '+unit}</p><p class="last-call-pickup">◷ Ambil sebelum 17.00</p><button class="last-call-add" data-promo-add="${menu.id}" ${limit?'disabled':''}>${promo.stock>0&&limit?'Kuota promo sudah di tas':'Tambah ke keranjang'}</button>${promo.stock===0&&regular?`<button class="last-call-regular" data-regular-add="${menu.id}">Pesan harga normal · ${rupiah(menu.price)}</button>`:''}</div></article>`;
 }
+function popupPromoCard(menu,state){return promoMenuCard(menu,state,true)}
+function updatePromoCards(element,html){if(element.innerHTML===html)return;const scroll=element.scrollLeft;const focused=element.contains(document.activeElement)?document.activeElement:null;const selector=focused?.dataset.promoAdd?`[data-promo-add="${focused.dataset.promoAdd}"]`:focused?.dataset.regularAdd?`[data-regular-add="${focused.dataset.regularAdd}"]`:null;element.innerHTML=html;element.scrollLeft=scroll;if(selector)element.querySelector(selector)?.focus({preventScroll:true})}
+function updateLastCallCountdown(now=new Date()){const remaining=Math.max(0,Math.ceil((Date.parse(jakartaDate(now)+'T17:00:00+07:00')-now.getTime())/1000));$('lastCallCountdown').textContent=[Math.floor(remaining/3600),Math.floor(remaining%3600/60),remaining%60].map(value=>String(value).padStart(2,'0')).join(':')}
 function renderLastCall(state){
-  const menus=availablePromoMenus(state),buyer=currentUser?.role==='buyer',visible=buyer&&menus.length>0;
+  const menus=activePromoMenus(state),available=availablePromoMenus(state),buyer=currentUser?.role==='buyer',visible=buyer&&menus.length>0;
   if(!lastCallHours())promoOnly=false;
-  $('lastCallBanner').hidden=!visible;$('lastCallFilter').hidden=!visible;
+  $('lastCallSection').hidden=!visible;$('lastCallBanner').hidden=!visible;$('lastCallFilter').hidden=!visible;
+  $('lastCallTeaser').hidden=!buyer||campusMinutes()>=900;
+  updatePromoCards($('lastCallFeaturedCards'),visible?menus.slice(0,3).map(menu=>promoMenuCard(menu,state)).join(''):'');updateLastCallCountdown();
   $('lastCallFilter').classList.toggle('active',promoOnly);$('lastCallFilter').setAttribute('aria-pressed',String(promoOnly));
-  if($('lastCallDialog').open){if(!buyer||!menus.length)closeLastCall();else $('lastCallCards').innerHTML=menus.slice(0,3).map(menu=>popupPromoCard(menu,state)).join('');}
+  if($('lastCallDialog').open){if(!buyer||!available.length)closeLastCall();else updatePromoCards($('lastCallCards'),available.slice(0,3).map(menu=>popupPromoCard(menu,state)).join(''));}
 }
+for(const element of [$('lastCallFeaturedCards'),$('lastCallCards')])element.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.promoAdd)addMenu(button.dataset.promoAdd,'promo');if(button.dataset.regularAdd)addMenu(button.dataset.regularAdd,'regular')});
 function closeLastCall(){if($('lastCallDialog').open)$('lastCallDialog').close()}
 async function maybeShowLastCall(){
   if(currentUser?.role!=='buyer'||!lastCallHours()||$('serviceDialog').open||$('resetDialog').open||$('forgotDialog').open||$('lastCallDialog').open)return;
@@ -155,28 +165,29 @@ async function maybeShowLastCall(){
   });}catch{ /* Unavailable storage must not cause a repeating popup. */ }
 }
 function refreshLastCallClock(){refreshBusiness();maybeShowLastCall()}
-function scheduleLastCallClock(){setTimeout(()=>{refreshLastCallClock();scheduleLastCallClock()},60000-Date.now()%60000+25)}
+let lastCallClockStamp=jakartaDate()+':'+campusMinutes();
+function scheduleLastCallClock(){setTimeout(()=>{updateLastCallCountdown();const stamp=jakartaDate()+':'+campusMinutes();if(stamp!==lastCallClockStamp){lastCallClockStamp=stamp;refreshLastCallClock()}scheduleLastCallClock()},1000-Date.now()%1000+15)}
 function renderPromoAdmin(state){
   if(!isAdmin())return;
   const menu=menuCatalog.find(menu=>menu.id===selectedPromoMenu),promo=state.promos[menu.id],stock=state.inventory[menu.id];
   $('promoOrderCount').textContent=state.orders.filter(order=>jakartaDate(order.createdAt)===jakartaDate()&&order.items.some(item=>item.promotion==='last-call')).length+' pesanan promo hari ini';
   $('promoClockStatus').textContent=lastCallHours()?'Jam Last Call sedang aktif · hingga 17.00 WIB.':'Promo tampil untuk pembeli hanya pukul 15.00–17.00 WIB.';
-  $('promoAdminControls').innerHTML=`<div class="promo-controls"><label>Menu kantin<select id="promoMenu" onchange="selectedPromoMenu=this.value;renderPromoAdmin(readOrderState())">${menuCatalog.filter(eligibleLastCall).sort((a,b)=>menuAlphabet.compare(a.name,b.name)).map(item=>`<option value="${item.id}" ${item.id===menu.id?'selected':''}>${escapeHTML(item.name)} · ${item.tenant}</option>`).join('')}</select></label><label>Jenis potongan<select id="promoMode" onchange="updatePromoEditor()"><option value="price" ${promo?.mode==='price'?'selected':''}>Harga promo (Rp)</option><option value="percent" ${!promo||promo.mode==='percent'?'selected':''}>Diskon (%)</option></select></label><label><span id="promoValueLabel">${promo?.mode==='price'?'Harga promo (Rp)':'Diskon (%)'}</span><input id="promoValue" type="number" min="1" max="${promo?.mode==='price'?menu.price-1:99}" step="1" value="${promo?.value||20}" oninput="previewPromoPrice()"></label><label>Stok promo hari ini<input id="promoStock" type="number" min="0" max="${stock.stock}" step="1" value="${promo?.stock??Math.min(5,stock.stock)}"></label><label class="promo-active-control"><input id="promoActive" type="checkbox" ${promo?.active?'checked':''}> Aktifkan promo</label><button class="category" onclick="saveLastCallPromo()">Simpan promo</button></div><p id="promoPreview" class="management-note"></p><p class="management-note">Stok utama ${stock.stock} · ${stock.active?'Menu aktif':'Menu tidak tersedia'}. Stok promo merupakan bagian dari stok utama, bukan tambahan. Stok yang disimpan menjadi kuota harian berikutnya, dibatasi stok utama.</p>`;
+  $('promoAdminControls').innerHTML=`<div class="promo-controls"><label>Menu kantin<select id="promoMenu" onchange="selectedPromoMenu=this.value;renderPromoAdmin(readOrderState())">${menuCatalog.filter(eligibleLastCall).sort((a,b)=>menuAlphabet.compare(a.name,b.name)).map(item=>`<option value="${item.id}" ${item.id===menu.id?'selected':''}>${escapeHTML(item.name)} · ${item.tenant}</option>`).join('')}</select></label><label>Jenis potongan<select id="promoMode" onchange="updatePromoEditor()"><option value="price" ${promo?.mode==='price'?'selected':''}>Harga promo (Rp)</option><option value="percent" ${!promo||promo.mode==='percent'?'selected':''}>Diskon (%)</option></select></label><label><span id="promoValueLabel">${promo?.mode==='price'?'Harga promo (Rp)':'Diskon (%)'}</span><input id="promoValue" type="number" min="1" max="${promo?.mode==='price'?menu.price-1:99}" step="1" value="${promo?.value||20}" oninput="previewPromoPrice()"></label><label>Stok promo hari ini<input id="promoStock" type="number" min="0" max="100000" step="1" value="${promo?.stock??5}"></label><label class="promo-active-control"><input id="promoActive" type="checkbox" ${promo?.active?'checked':''}> Aktifkan promo</label><button class="category" onclick="saveLastCallPromo()">Simpan promo</button></div><p id="promoPreview" class="management-note"></p><p class="management-note">Stok reguler ${stock.stock} · ${stock.active?'Menu aktif':'Menu tidak tersedia'}. Stok promo terpisah dari stok reguler. Pembelian promo hanya mengurangi stok promo. Kuota yang disimpan diisi ulang setiap hari.</p>`;
   previewPromoPrice();
-  $('promoAdminList').innerHTML=Object.entries(state.promos).sort(([a],[b])=>menuAlphabet.compare(menuCatalog.find(menu=>menu.id===a).name,menuCatalog.find(menu=>menu.id===b).name)).map(([id,promo])=>{const item=menuCatalog.find(menu=>menu.id===id),inventory=state.inventory[id];return `<article class="promo-admin-card"><div><span class="dish-type">${item.tenant}</span><h3>${escapeHTML(item.name)}</h3>${menuPriceHTML(item,promo)}<p>Stok promo ${promo.stock} · Stok utama ${inventory.stock}</p><span class="stock-badge ${promo.stock===0||inventory.stock===0?'stock-empty':!promo.active||!inventory.active?'stock-off':'stock-available'}">${promo.stock===0||inventory.stock===0?'Habis hari ini':!inventory.active?'Menu tidak tersedia':promo.active?'Promo aktif':'Promo nonaktif'}</span></div><div class="promo-row-actions"><button class="category" data-edit-promo="${id}">Edit</button><button class="category" data-toggle-promo="${id}" ${!promo.active&&(!inventory.active||inventory.stock===0||promo.stock===0)?'disabled':''}>${promo.active?'Nonaktifkan':'Aktifkan'}</button></div></article>`}).join('');
+  $('promoAdminList').innerHTML=Object.entries(state.promos).sort(([a],[b])=>menuAlphabet.compare(menuCatalog.find(menu=>menu.id===a).name,menuCatalog.find(menu=>menu.id===b).name)).map(([id,promo])=>{const item=menuCatalog.find(menu=>menu.id===id),inventory=state.inventory[id];return `<article class="promo-admin-card"><div><span class="dish-type">${item.tenant}</span><h3>${escapeHTML(item.name)}</h3>${menuPriceHTML(item,promo)}<p>Stok promo ${promo.stock} · Stok reguler ${inventory.stock}</p><span class="stock-badge ${promo.stock===0?'stock-empty':!promo.active||!inventory.active?'stock-off':'stock-available'}">${!inventory.active?'Menu tidak tersedia':!promo.active?'Promo nonaktif':promo.stock===0?'Promo habis':'Promo aktif'}</span></div><div class="promo-row-actions"><button class="category" data-edit-promo="${id}">Edit</button><button class="category" data-toggle-promo="${id}" ${!promo.active&&(!inventory.active||promo.stock===0)?'disabled':''}>${promo.active?'Nonaktifkan':'Aktifkan'}</button></div></article>`}).join('');
 }
 function updatePromoEditor(){const menu=menuCatalog.find(menu=>menu.id===selectedPromoMenu),mode=$('promoMode').value;$('promoValueLabel').textContent=mode==='price'?'Harga promo (Rp)':'Diskon (%)';$('promoValue').max=mode==='price'?menu.price-1:99;$('promoValue').value=mode==='price'?Math.round(menu.price*.8):20;previewPromoPrice()}
 function previewPromoPrice(){try{const menu=menuCatalog.find(menu=>menu.id===selectedPromoMenu),price=calculatePromoPrice(menu,$('promoMode').value,Number($('promoValue').value));$('promoPreview').textContent='Harga normal '+rupiah(menu.price)+' → Harga promo '+rupiah(price)}catch(error){$('promoPreview').textContent=error.message}}
 function saveLastCallPromo(){
   if(!isAdmin())return;const id=selectedPromoMenu,menu=menuCatalog.find(menu=>menu.id===id),mode=$('promoMode').value,value=Number($('promoValue').value),stock=Number($('promoStock').value),active=$('promoActive').checked;
   try{const price=calculatePromoPrice(menu,mode,value);if(!$('promoStock').value||!Number.isSafeInteger(stock)||stock<0||stock>100000)throw Error('Stok promo harus angka bulat 0–100000.');
-    return mutateBusiness(state=>{const inventory=state.inventory[id];if(stock>inventory.stock)throw Error('Stok promo tidak boleh melebihi stok utama.');if(active&&(!inventory.active||inventory.stock===0||stock===0))throw Error('Promo hanya dapat diaktifkan jika menu tersedia dan stoknya lebih dari 0.');state.promos[id]={mode,value,price,stock,dailyStock:stock,stockDate:jakartaDate(),active};},'Promo Last Call disimpan.');
+    return mutateBusiness(state=>{const inventory=state.inventory[id];if(active&&(!inventory.active||stock===0))throw Error('Promo hanya dapat diaktifkan jika menu aktif dan stok promo lebih dari 0.');state.promos[id]={mode,value,price,stock,dailyStock:stock,stockDate:jakartaDate(),active};},'Promo Last Call disimpan.');
   }catch(error){showToast(error.message)}
 }
 $('promoAdminList').addEventListener('click',event=>{
   if(!isAdmin())return;const button=event.target.closest('button');if(!button)return;
   if(button.dataset.editPromo){selectedPromoMenu=button.dataset.editPromo;renderPromoAdmin(readOrderState());$('promoMenu').focus({preventScroll:true});}
-  if(button.dataset.togglePromo){const id=button.dataset.togglePromo;mutateBusiness(state=>{const promo=state.promos[id],inventory=state.inventory[id];if(!promo.active&&(!inventory.active||inventory.stock===0||promo.stock===0))throw Error('Menu dan stok promo harus tersedia untuk aktivasi.');promo.active=!promo.active;},'Status promo diperbarui.');}
+  if(button.dataset.togglePromo){const id=button.dataset.togglePromo;mutateBusiness(state=>{const promo=state.promos[id],inventory=state.inventory[id];if(!promo.active&&(!inventory.active||promo.stock===0))throw Error('Menu dan stok promo harus tersedia untuk aktivasi.');promo.active=!promo.active;},'Status promo diperbarui.');}
 });
 
 
@@ -203,16 +214,16 @@ function menuStatus(menu,state){
 function stockBadge(menu,state){const status=menuStatus(menu,state);return `<span class="stock-badge stock-${status.kind}">${status.label}${!menu.service&&status.available?' · '+state.inventory[menu.id].stock:''}</span>`}
 function cartQuantity(menuId){return cart.filter(item=>item.menuId===menuId).reduce((sum,item)=>sum+item.qty,0)}
 function menuRow(menu,state){
-  const qty=cartQuantity(menu.id),promo=currentPromo(menu,state),status=menuStatus(menu,state),limit=!menu.service&&(qty>=(state?.inventory[menu.id]?.stock||0)||promo&&promoCartQuantity(menu.id)>=promo.stock);
+  const qty=cartQuantity(menu.id),configuredPromo=currentPromo(menu,state),promo=configuredPromo?.stock>0?configuredPromo:null,status=promo?{available:true}:menuStatus(menu,state),limit=!menu.service&&(promo?promoCartQuantity(menu.id)>=promo.stock:regularCartQuantity(menu.id)>=(state?.inventory[menu.id]?.stock||0));
   const illustration=categoryIllustrations[menu.category]||'<rect x="30" y="48" width="68" height="44" rx="7"/><path d="M43 48V24h42v24M43 78h42v31H43ZM79 61h6M50 88h28M50 97h20"/>';
   const visual=menu.photo?`<div class="food-photo dish-photo" role="img" aria-label="Ilustrasi ${escapeHTML(menu.name)}" style="--photo-x:${menu.photo.x}%;--photo-y:${menu.photo.y}%"></div>`:`<div class="dish-photo category-placeholder" role="img" aria-label="Ilustrasi ${categoryNames[menu.category]}"><svg viewBox="0 0 128 128" aria-hidden="true" fill="var(--soft-accent)" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${illustration}</svg><span>Ilustrasi · ${categoryNames[menu.category]}</span></div>`;
-  return `<article class="dish${qty?' chosen':''}" data-menu-id="${menu.id}" data-category="${menu.category}"><div class="dish-media">${visual}${qty?`<span class="dish-selected">${qty} di tas ✓</span>`:''}</div><div class="dish-body"><span class="dish-type">${escapeHTML(menu.tenant)} · ${categoryNames[menu.category]}</span><h4>${escapeHTML(menu.name)}</h4><p>${escapeHTML(menu.description)}</p>${promo?'<span class="menu-hemat-badge">Menu Hemat</span>':''}${promoStockBadge(menu,state,promo)}<div class="dish-bottom">${menuPriceHTML(menu,promo)}<button class="add" data-add-menu="${menu.id}" ${!status.available||limit?'disabled':''} aria-label="${menu.service?'Isi detail':'Tambah'} ${escapeHTML(menu.name)} dari ${escapeHTML(menu.tenant)}">${menu.service?'↗':'+'}</button></div></div></article>`;
+  return `<article class="dish${qty?' chosen':''}" data-menu-id="${menu.id}" data-category="${menu.category}"><div class="dish-media">${visual}${qty?`<span class="dish-selected">${qty} di tas ✓</span>`:''}</div><div class="dish-body"><span class="dish-type">${escapeHTML(menu.tenant)} · ${categoryNames[menu.category]}</span><h4>${escapeHTML(menu.name)}</h4><p>${escapeHTML(menu.description)}</p>${promo?'<span class="menu-hemat-badge">Hemat Ekstra</span>':''}${promoStockBadge(menu,state,promo)}${configuredPromo?.stock===0?'<span class="stock-badge stock-empty">Promo habis · Harga normal tersedia sesuai stok</span>':''}<div class="dish-bottom">${menuPriceHTML(menu,promo)}<button class="add" data-add-menu="${menu.id}" data-add-kind="${promo?'promo':'regular'}" ${!status.available||limit?'disabled':''} aria-label="${menu.service?'Isi detail':'Tambah'} ${escapeHTML(menu.name)} dari ${escapeHTML(menu.tenant)}">${menu.service?'↗':'+'}</button></div>${promo&&menuStatus(menu,state).available?`<button class="last-call-regular" data-add-menu="${menu.id}" data-add-kind="regular" ${regularCartQuantity(menu.id)>=state.inventory[menu.id].stock?'disabled':''}>Pesan harga normal · ${rupiah(menu.price)}</button>`:''}</div></article>`;
 }
 function menuMatchesQuery(menu,query){return (menu.tenant+' '+menu.name+' '+menu.description+' '+categoryNames[menu.category]).toLocaleLowerCase('id-ID').includes(query)}
 function renderMenu(){
   const q=$('searchInput').value.trim().toLocaleLowerCase('id-ID'),state=safeState();renderLastCall(state);
   const visible=menuCatalog.filter(menu=>(tenant==='all'||menu.tenant===tenant)&&(!q||menuMatchesQuery(menu,q))&&(category==='all'||menu.category===category)&&(!promoOnly||currentPromo(menu,state))).sort((a,b)=>menuAlphabet.compare(a.name,b.name));
-  $('tenantTitle').textContent=q?'Hasil pencarian':promoOnly?'Last Call: Menu Hemat':tenant!=='all'?'Pilihan '+tenant:categoryNames[category];
+  $('tenantTitle').textContent=q?'Hasil pencarian':promoOnly?'Last Call: Hemat Ekstra':tenant!=='all'?'Pilihan '+tenant:categoryNames[category];
   $('tenantSub').textContent=visible.length+' produk & layanan · A–Z · Operasional 06.30–17.00';
   $('searchHint').textContent=q?visible.length+' pilihan ditemukan untuk “'+$('searchInput').value.trim()+'”.':'Coba cari ‘bubur’, ‘croissant’, atau ‘print’.';
   $('clearSearch').hidden=!q;$('resetFilter').hidden=!q&&category==='all'&&tenant==='all'&&!promoOnly;
@@ -240,23 +251,25 @@ function restoreCart(){
 function reconcileCart(state){
   if(!state)return false;
   const remaining=Object.fromEntries(menuCatalog.filter(menu=>!menu.service).map(menu=>[menu.id,state.inventory[menu.id].stock])),promoRemaining=Object.fromEntries(Object.entries(state.promos).map(([id,promo])=>[id,promo.stock]));let changed=false;const notes=[];
-  cart=cart.flatMap(item=>{const menu=menuCatalog.find(menu=>menu.id===item.menuId),status=menu&&menuStatus(menu,state);if(!status?.available){notes.push((status?.kind==='empty'?'Produk habis: ':'Tidak tersedia: ')+item.name+' dihapus dari tas.');changed=true;return [];}
+  cart=cart.flatMap(item=>{const menu=menuCatalog.find(menu=>menu.id===item.menuId),status=menu&&(item.promotion==='last-call'?{available:!!state.inventory[menu.id]?.active}:menuStatus(menu,state));if(!status?.available){notes.push((status?.kind==='empty'?'Produk habis: ':'Tidak tersedia: ')+item.name+' dihapus dari tas.');changed=true;return [];}
     const problem=promoItemProblem(item,menu,state);if(problem){notes.push(problem);changed=true;return [];}
-    if(!menu.service){const qty=Math.min(item.qty,remaining[menu.id],item.promotion==='last-call'?promoRemaining[menu.id]:Infinity);remaining[menu.id]-=qty;if(item.promotion==='last-call')promoRemaining[menu.id]-=qty;if(qty!==item.qty){notes.push(item.name+': jumlah disesuaikan menjadi '+qty+' sesuai '+(item.promotion==='last-call'?'stok promo':'stok')+' terbaru.');changed=true;}if(!qty)return [];item.qty=qty;return [item];}return [item];});
+    if(!menu.service){const pool=item.promotion==='last-call'?promoRemaining:remaining,qty=Math.min(item.qty,pool[menu.id]);pool[menu.id]-=qty;if(qty!==item.qty){notes.push(item.name+': jumlah disesuaikan menjadi '+qty+' sesuai '+(item.promotion==='last-call'?'stok promo':'stok reguler')+' terbaru.');changed=true;}if(!qty)return [];item.qty=qty;return [item];}return [item];});
   if(changed){cartMessage=notes.join(' ');saveCart();}return changed;
 }
-function addMenu(id){
+function addMenu(id,kind='auto'){
   if(currentUser?.role!=='buyer')return showToast('Masuk sebagai pembeli untuk memesan.');
   const menu=menuCatalog.find(menu=>menu.id===id),state=safeState();if(!menu)return;
-  const status=menuStatus(menu,state);if(!status.available)return showToast(status.kind==='empty'?'Produk habis: '+menu.name+'.':menu.name+' tidak tersedia.');
+  const configuredPromo=currentPromo(menu,state),promo=kind!=='regular'&&configuredPromo?.stock>0?configuredPromo:null;
+  if(kind==='promo'&&!promo)return showToast('Promo tidak tersedia. Pilih harga normal jika ingin memesan.');
+  const status=promo?{available:true}:menuStatus(menu,state);if(!status.available)return showToast(status.kind==='empty'?'Produk habis: '+menu.name+'.':menu.name+' tidak tersedia.');
   if(menu.service)return openServiceDialog(menu.id);
-  const promo=currentPromo(menu,state);if(promo&&promoCartQuantity(id)>=promo.stock)return showToast('Stok promo habis atau seluruh kuota promo sudah di tas.');
-  if(cartQuantity(id)>=state.inventory[id].stock)return showToast('Jumlah '+menu.name+' sudah mencapai stok yang tersedia.');
+  if(promo&&promoCartQuantity(id)>=promo.stock)return showToast('Seluruh kuota promo sudah di tas. Harga normal tetap tersedia sesuai stok reguler.');
+  if(!promo&&regularCartQuantity(id)>=state.inventory[id].stock)return showToast('Jumlah '+menu.name+' sudah mencapai stok reguler yang tersedia.');
   const promotion=promo?'last-call':undefined,found=cart.find(item=>item.menuId===id&&item.promotion===promotion);if(found)found.qty++;else cart.push({cartId:crypto.randomUUID(),menuId:id,tenant:menu.tenant,name:menu.name,price:promo?.price||menu.price,qty:1,...(promo?{promotion,promoDate:jakartaDate(),originalPrice:menu.price}:{})});choosePromoSlot(state);
   cartMessage='';saveCart();renderCart();renderMenu();showToast(menu.name+' ditambahkan');
 }
 function addFrom(name,index){const menu=menus[name]?.[index];if(menu)addMenu(menu.id)}
-$('menuList').addEventListener('click',event=>{const button=event.target.closest('[data-add-menu]');if(button&&!button.disabled)addMenu(button.dataset.addMenu)});
+$('menuList').addEventListener('click',event=>{const button=event.target.closest('[data-add-menu]');if(button&&!button.disabled)addMenu(button.dataset.addMenu,button.dataset.addKind)});
 function renderCatalogDetails(){
   $('menuCount').textContent=menuCatalog.length;
   document.querySelectorAll('[data-tenant-menu-count]').forEach(element=>{const name=element.dataset.tenantMenuCount;element.textContent='Lihat '+menus[name].length+(name===partnerNames[3]?' layanan':' menu')});
@@ -264,10 +277,10 @@ function renderCatalogDetails(){
 }
 function increaseItem(index){
   if(currentUser?.role!=='buyer'||!cart[index])return;
-  const item=cart[index],menu=menuCatalog.find(menu=>menu.id===item.menuId),state=safeState();if(reconcileCart(state)){renderCart();renderMenu();return;}
-  if(!menuStatus(menu,state).available)return showToast('Item tidak tersedia.');
+  const item=cart[index],menu=menuCatalog.find(menu=>menu.id===item.menuId),state=safeState();if(!state)return showToast('Data operasional belum dapat dibaca. Jumlah di tas tetap sama.');if(reconcileCart(state)){renderCart();renderMenu();return;}
+  if(item.promotion!=='last-call'&&!menuStatus(menu,state).available)return showToast('Item tidak tersedia.');
   if(item.promotion==='last-call'&&promoCartQuantity(item.menuId)>=state.promos[item.menuId].stock)return showToast('Jumlah sudah mencapai stok promo yang tersedia.');
-  if(!menu.service&&cartQuantity(item.menuId)>=state.inventory[item.menuId].stock)return showToast('Jumlah tidak boleh melebihi stok '+menu.name+'.');
+  if(!menu.service&&item.promotion!=='last-call'&&regularCartQuantity(item.menuId)>=state.inventory[item.menuId].stock)return showToast('Jumlah tidak boleh melebihi stok reguler '+menu.name+'.');
   if(menu.service&&item.qty>=100)return showToast('Maksimal 100 paket layanan per item.');item.qty++;cartMessage='';saveCart();renderCart();renderMenu();
 }
 function removeItem(index){if(currentUser?.role!=='buyer'||!cart[index])return;if(cart[index].qty>1)cart[index].qty--;else cart.splice(index,1);cartMessage='';saveCart();renderCart();renderMenu()}
@@ -297,7 +310,7 @@ function renderSlots(state){
   $('slots').innerHTML=slotList.map(time=>{const infos=state?partners.map(name=>slotInfo(state,name,time)):[],unavailable=!state||infos.some(info=>!info.available)||hasPromo&&!lastCallSlot(time),kind=!state?'closed':infos.some(info=>info.closed)?'closed':infos.some(info=>info.kind==='full')?'full':infos.some(info=>info.kind==='near')?'near':'available';
     return `<button class="slot slot-${kind}${slot===time?' selected':''}" data-slot="${time}" aria-pressed="${slot===time}" ${unavailable?'disabled':''}>${time}<small>${hasPromo&&!lastCallSlot(time)?'Lewat / promo berakhir':{closed:'Ditutup',full:'Penuh',near:'Hampir penuh',available:'Tersedia'}[kind]}</small></button>`}).join('');
   const valid=state&&slotList.includes(slot)&&partners.every(name=>slotInfo(state,name,slot).available)&&(!hasPromo||lastCallSlot(slot));
-  $('slotAvailability').innerHTML=state?`<b>Slot ${slot} · Hari ini</b>${hasPromo?'<p>Menu Hemat: ambil dalam slot yang belum berakhir, sebelum 17.00 WIB.</p>':''}`+partners.map(name=>{const info=slotInfo(state,name,slot);return `<p>${escapeHTML(name)}: <span class="slot-label-${info.kind}">${info.label}</span> · ${info.used}/${info.capacity} pesanan</p>`}).join(''):'Penyimpanan operasional belum dapat dibaca.';
+  $('slotAvailability').innerHTML=state?`<b>Slot ${slot} · Hari ini</b>${hasPromo?'<p>Hemat Ekstra: ambil dalam slot yang belum berakhir, sebelum 17.00 WIB.</p>':''}`+partners.map(name=>{const info=slotInfo(state,name,slot);return `<p>${escapeHTML(name)}: <span class="slot-label-${info.kind}">${info.label}</span> · ${info.used}/${info.capacity} pesanan</p>`}).join(''):'Penyimpanan operasional belum dapat dibaca.';
   $('checkoutButton').disabled=checkoutBusy||!cart.length||!valid;
 }
 $('slots').addEventListener('click',event=>{const button=event.target.closest('[data-slot]');if(!button||button.disabled)return;slot=button.dataset.slot;saveCart();renderSlots(safeState())});
@@ -315,7 +328,14 @@ async function checkout(){
       if(currentUser?.role!=='buyer'||currentUser.sessionId!==buyer.sessionId)throw Error('Sesi pembeli berubah. Masuk kembali.');
       const state=readOrderState();if(snapshot.some(item=>item.promotion==='last-call')&&!lastCallSlot(selectedSlot))throw Error('Promo Last Call berakhir atau slot sudah lewat. Ambil sebelum 17.00 WIB.');if(!slotList.includes(selectedSlot))throw Error('Pilih slot antara 06.30 dan 17.00.');
       for(const name of partners){const info=slotInfo(state,name,selectedSlot);if(info.closed)throw Error('Slot waktu ditutup: '+name+'. Pilih slot lain.');if(!info.available)throw Error('Slot waktu penuh: '+name+'. Pilih slot lain.');}
-      const quantities={},promoQuantities={};for(const item of snapshot){const menu=menuCatalog.find(menu=>menu.id===item.menuId);if(!menu)throw Error('Item tidak dikenali.');const status=menuStatus(menu,state);if(!status.available)throw Error((status.kind==='empty'?'Produk habis: ':'Tidak tersedia: ')+menu.name+'.');const problem=promoItemProblem(item,menu,state);if(problem)throw Error(problem);if(item.promotion==='last-call')promoQuantities[menu.id]=(promoQuantities[menu.id]||0)+item.qty;if(item.price!==(menu.service?servicePrice(menu.id,item.details):item.promotion==='last-call'?state.promos[menu.id].price:menu.price))throw Error('Harga berubah. Tambahkan item kembali.');quantities[menu.id]=(quantities[menu.id]||0)+item.qty;}
+      const quantities={},promoQuantities={};
+      for(const item of snapshot){
+        const menu=menuCatalog.find(menu=>menu.id===item.menuId);if(!menu)throw Error('Item tidak dikenali.');
+        const status=item.promotion==='last-call'?{available:state.inventory[menu.id].active}:menuStatus(menu,state);if(!status.available)throw Error((status.kind==='empty'?'Produk habis: ':'Tidak tersedia: ')+menu.name+'.');
+        const problem=promoItemProblem(item,menu,state);if(problem)throw Error(problem);
+        if(item.price!==(menu.service?servicePrice(menu.id,item.details):item.promotion==='last-call'?state.promos[menu.id].price:menu.price))throw Error('Harga berubah. Tambahkan item kembali.');
+        const pool=item.promotion==='last-call'?promoQuantities:quantities;pool[menu.id]=(pool[menu.id]||0)+item.qty;
+      }
       for(const [id,qty]of Object.entries(promoQuantities)){if(qty>state.promos[id].stock)throw Error('Stok promo berubah. Periksa jumlah terbaru di tas.');state.promos[id].stock-=qty;}
       for(const [id,qty]of Object.entries(quantities)){const inventory=state.inventory[id];if(inventory.stock!==null){if(qty>inventory.stock)throw Error('Stok berubah. Periksa jumlah terbaru di tas.');inventory.stock-=qty;}}
       const number=Math.max(state.lastQueueNumber,...state.orders.map(order=>order.queueSequence),0)+1,createdAt=new Date().toISOString();
