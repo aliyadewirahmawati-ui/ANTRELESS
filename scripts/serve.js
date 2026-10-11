@@ -5,7 +5,7 @@ import {buildSite} from './build.js';
 import {existsSync} from 'node:fs';
 for(const file of ['.env','.env.local'])if(existsSync(file))process.loadEnvFile(file);
 if(process.argv.includes('--watch'))await buildSite();
-const files={'/':'index.html','/index.html':'index.html','/style.css':'style.css','/app.js':'app.js','/assets/menu-illustrations.png':'assets/menu-illustrations.png'};
+const files={'/':'index.html','/index.html':'index.html','/style.css':'style.css','/app.js':'app.js','/assets/menu-illustrations.png':'assets/menu-illustrations.png','/assets/antreless-logo.png':'assets/antreless-logo.png'};
 const server=http.createServer(async(req,res)=>{
   const file=files[new URL(req.url,'http://localhost').pathname];
   if(!file){res.writeHead(404).end();return;}
