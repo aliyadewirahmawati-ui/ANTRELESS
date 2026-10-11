@@ -21,3 +21,5 @@ PGlite menyerialkan transaksi lokal; uji lokal tidak membuktikan contention lock
 Empat foto papan menu tidak tersedia pada lampiran implementasi. Sebanyak 45 menu/58 varian hanya berasal dari transkripsi; seluruh seed belum terverifikasi, nonaktif, stok 0, dan tidak memiliki promo otomatis. Daftar pemeriksaan manusia ada di `MENU_PERLU_KONFIRMASI.md`.
 
 Migrasi belum diterapkan ke proyek Supabase nyata. Status deployment frontend diperiksa terpisah setelah push GitHub; deployment frontend tidak menjalankan migrasi database.
+
+Pembaruan 11 Oktober 2026: deretan kategori bergerak ke kanan secara berulang, tersedia tombol jeda/lanjutkan, berhenti saat hover/fokus, serta mengikuti `prefers-reduced-motion`. Uji browser memeriksa pergerakan, jeda, lanjutkan, dan pengurangan animasi. Gambar/nama menu membuka pop-up rincian berisi varian, harga, lokasi, dan ketersediaan; tombol + tetap langsung menuju alur ringkasan. Pop-up diperiksa pada desktop dan HP tanpa overflow. Seluruh 18 uji logika/database serta suite browser lengkap kembali lulus untuk perubahan ini. Screenshot tambahan: `menu-detail-desktop.png` dan `menu-detail-mobile.png`.

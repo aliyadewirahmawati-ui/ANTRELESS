@@ -125,6 +125,39 @@ input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px soli
 .service-dialog p{line-height:1.7}
 .service-dialog .button{margin-top:16px}
 .service-fields{margin-top:20px}
+.food-ribbon{position:relative;overflow:hidden}
+.ribbon-window{overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 3%,#000 93%,transparent)}
+.ribbon-track{display:flex;width:max-content;animation:category-flow 38s linear infinite}
+.ribbon-group{display:flex;align-items:center;justify-content:space-around;flex-shrink:0;min-width:100vw;gap:clamp(28px,4.5vw,80px);padding:22px 40px;font:700 clamp(21px,2vw,30px)/1.3 var(--serif);white-space:nowrap}
+.food-ribbon span.ribbon-star{font-size:17px;color:var(--highlight)}
+.food-ribbon:hover .ribbon-track,.food-ribbon:focus-within .ribbon-track,.food-ribbon.is-paused .ribbon-track{animation-play-state:paused}
+.ribbon-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:1px solid var(--glass-border);border-radius:50%;background:var(--text);color:var(--surface);display:grid;place-items:center}
+.ribbon-toggle svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ribbon-toggle svg[hidden]{display:none}
+@keyframes category-flow{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+.dish-preview{position:relative;display:block;width:100%;text-align:left;background:var(--soft-accent);overflow:hidden}
+.dish-preview .category-placeholder{transition:transform .3s ease}
+.dish-preview:hover .category-placeholder{transform:scale(1.04)}
+.preview-label{position:absolute;right:12px;bottom:12px;padding:8px 11px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text);font-size:10px;font-weight:700}
+.dish-title-button{background:none;color:inherit;font:inherit;text-align:left;line-height:inherit}
+.dish-title-button:hover{color:var(--primary)}
+.menu-detail-dialog{max-width:520px}
+.menu-detail-visual{position:relative;margin:20px 0 24px;border-radius:16px;overflow:hidden;background:var(--soft-accent)}
+.menu-detail-illustration{height:170px;aspect-ratio:auto;position:relative}
+.menu-detail-illustration svg{width:110px;height:110px}
+.menu-detail-illustration>span{position:absolute;bottom:12px;font-size:8px}
+.menu-detail-category{position:absolute;top:14px;left:14px;padding:7px 12px;border-radius:20px;background:var(--surface);color:var(--text);font-size:10px;font-weight:700}
+.menu-detail-dialog #menuDetailTitle{font:700 32px/1.15 var(--serif);letter-spacing:-.7px;overflow-wrap:anywhere}
+.menu-detail-kantin{font-size:13px;font-weight:700;margin:10px 0 20px;color:var(--text)}
+.menu-detail-kantin span{display:block;font-weight:400;font-size:11px;color:var(--muted-text);margin-top:3px}
+.menu-detail-variants{list-style:none;padding:0;margin:0;border-block:1px solid var(--border)}
+.menu-detail-variants li{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0;font-size:13px}
+.menu-detail-variants li+li{border-top:1px solid var(--border)}
+.menu-detail-variants small{display:block;margin-top:4px;font-size:10px;color:var(--muted-text)}
+.menu-detail-variants b{white-space:nowrap;color:var(--primary)}
+.menu-detail-hint{font-size:11px;color:var(--muted-text);margin-top:18px}
+.menu-detail-order{width:100%;justify-content:space-between}
+@media(prefers-reduced-motion:reduce){.ribbon-track{animation:none;transform:none;width:100%}.ribbon-group{min-width:0;width:100%;flex-wrap:wrap;white-space:normal;gap:15px 25px;padding:20px}.ribbon-group[aria-hidden=true],.ribbon-toggle{display:none}.dish-preview .category-placeholder{transition:none}.dish-preview:hover .category-placeholder{transform:none}}
 @media(max-width:650px){
  .hero h1{font-size:clamp(47px,12vw,67px);letter-spacing:-2px}
  .hero h1 em br{display:none}

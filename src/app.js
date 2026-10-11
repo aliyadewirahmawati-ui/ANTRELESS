@@ -98,6 +98,13 @@ async function changeSession(session,event){
 function syncLabel(){const text=demoMode?'Data tersimpan pada browser ini · Pesanan dan pembayaran masih simulasi.':!configured?'Katalog referensi · Pemesanan online belum aktif':!state.session?'Masuk untuk melihat pesananmu.':!state.connected?'Koneksi terputus · Mencoba menyambung kembali':channelStatus==='SUBSCRIBED'?'Pesanan tersinkron otomatis':'Pembaruan otomatis setiap 15 detik';$('syncStatus').textContent=text;$('adminSyncStatus').textContent=text;}
 function icon(kind){return `<svg viewBox="0 0 128 128" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${kind==='drink'?'<path d="m43 50 5 60h32l6-60ZM38 50h53M65 50l6-29h17"/><path d="M47 69h35"/>':'<path d="M20 62h88c-4 25-18 42-44 42S24 87 20 62ZM16 62h96M46 29c-8 10 8 13 0 23m20-23c-8 10 8 13 0 23m20-23c-8 10 8 13 0 23"/>'}</svg>`;}
 function media(menu,cls='dish-photo'){return `<div class="category-placeholder ${cls}" role="img" aria-label="Ilustrasi kategori ${e(menu.category)}, bukan foto menu">${icon(menu.kind)}<span>ILUSTRASI ${menu.kind==='drink'?'MINUMAN':'MAKANAN'}</span></div>`;}
+function openMenuDetail(id,mode='regular'){
+  const menu=state.menus.find(m=>m.id===id);if(!menu||admin())return;
+  const kantin=menuKantin(menu),variants=menuVariants(id).filter(v=>mode!=='promo'||variantPromo(v.id)?.active);
+  const available=variants.some(v=>!variantProblem(menu,v,kantin,{mode,promo:variantPromo(v.id)}));
+  $('menuDetailContent').innerHTML=`<div class="menu-detail-visual">${media(menu,'menu-detail-illustration')}<span class="menu-detail-category">${e(menu.category)}</span></div><h2 id="menuDetailTitle">${e(menu.name)}</h2><p class="menu-detail-kantin">${e(kantin?.name||'Kantin')}<span>${e(kantin?.pickup_location||'Detail lokasi belum diisi')}</span></p><ul class="menu-detail-variants">${variants.map(v=>{const problem=variantProblem(menu,v,kantin,{mode,promo:variantPromo(v.id)});return `<li><div><strong>${e(v.name)}</strong><small>${e(problem|| (v.stock<=5?'Tersisa sedikit · '+v.stock+' tersedia':'Tersedia'))}</small></div><b>${rupiah(mode==='promo'?variantPromo(v.id)?.price:v.price)}</b></li>`;}).join('')}</ul><p class="menu-detail-hint">Pilih menu, sesuaikan jumlah dan catatan, lalu periksa pesananmu. Masih ingin menu lain? Gunakan “Tambahkan yang lain”.</p><button class="button primary menu-detail-order" type="button" data-action="pick" data-id="${e(id)}" data-mode="${e(mode)}" ${available&&configured?'':'disabled'}>Pesan menu ini <span aria-hidden="true">+</span></button>`;
+  closeDialogs();$('menuDetailDialog').showModal();
+}
 function menuCard(menu,{featured=false,popup=false}={}){
   const variants=menuVariants(menu.id),kantin=menuKantin(menu);
   const promoted=variants.filter(v=>variantPromo(v.id)?.active);
@@ -112,13 +119,15 @@ function menuCard(menu,{featured=false,popup=false}={}){
     const promo=available?variantPromo(available.id):variantPromo(promoted[0]?.id);
     return `<article class="last-call-card ${popup?'last-call-popup-card':'last-call-featured-card'}"><div class="last-call-card-media">${media(menu,'last-call-food last-call-food-illustration')}${promo?'<span class="last-call-discount">LAST CALL</span>':''}</div><div class="last-call-card-body"><span class="dish-type">${e(kantin?.name)}</span><h3>${e(menu.name)}</h3><span class="promo-price"><strong>${rupiah(minimum)}</strong></span><p class="last-call-card-stock">${e(problem||'Promo tersedia')}</p><p class="last-call-pickup">${e(kantin?.pickup_location)}</p><button class="last-call-add" data-action="pick" data-id="${menu.id}" data-mode="promo" ${available&&configured?'':'disabled'}>Pilih promo</button></div></article>`;
   }
-  return `<article class="dish" data-menu-id="${menu.id}"><div class="dish-media">${media(menu)}</div><div class="dish-body"><span class="dish-type">${e(menu.category)} · ${e(kantin?.name)}</span><h4>${e(menu.name)}</h4><p>${e(menu.is_verified?(variants.length>1?variants.length+' pilihan rasa / jenis':'Pilih, pesan, lalu ambil saat siap.'):'Perlu konfirmasi oleh admin.')}</p><span class="availability-badge ${problem?'unavailable':'available'}">${e(problem||'Tersedia')}</span><div class="dish-bottom"><span class="price">${amounts.length>1&&new Set(amounts).size>1?'Mulai ':''}${rupiah(minimum)}${!menu.is_verified&&minimum!=null?'<small>Harga referensi</small>':''}</span><button class="add" data-action="pick" data-id="${menu.id}" data-mode="${state.promoOnly?'promo':'regular'}" aria-label="Pesan ${e(menu.name)}" ${available&&configured?'':'disabled'}>+</button></div></div></article>`;
+  return `<article class="dish" data-menu-id="${menu.id}"><button class="dish-media dish-preview" type="button" data-action="preview-menu" data-id="${menu.id}" data-mode="${state.promoOnly?'promo':'regular'}" aria-label="Lihat detail ${e(menu.name)}">${media(menu)}<span class="preview-label">Lihat menu ↗</span></button><div class="dish-body"><span class="dish-type">${e(menu.category)} · ${e(kantin?.name)}</span><h4><button class="dish-title-button" type="button" data-action="preview-menu" data-id="${menu.id}" data-mode="${state.promoOnly?'promo':'regular'}">${e(menu.name)}</button></h4><p>${e(menu.is_verified?(variants.length>1?variants.length+' pilihan rasa / jenis':'Pilih, pesan, lalu ambil saat siap.'):'Perlu konfirmasi oleh admin.')}</p><span class="availability-badge ${problem?'unavailable':'available'}">${e(problem||'Tersedia')}</span><div class="dish-bottom"><span class="price">${amounts.length>1&&new Set(amounts).size>1?'Mulai ':''}${rupiah(minimum)}${!menu.is_verified&&minimum!=null?'<small>Harga referensi</small>':''}</span><button class="add" data-action="pick" data-id="${menu.id}" data-mode="${state.promoOnly?'promo':'regular'}" aria-label="Pesan ${e(menu.name)}" ${available&&configured?'':'disabled'}>+</button></div></div></article>`;
 }
 function renderMenu(){
   const categories=[...new Set(state.menus.map(m=>m.category))].sort(collator.compare);
   const buttons=['all',...categories].map(c=>`<button class="category ${state.category===c?'active':''}" data-action="category" data-id="${e(c)}" aria-pressed="${state.category===c}">${c==='all'?'Semua':e(c)}</button>`).join('');
   if($('categoryButtons').innerHTML!==buttons)$('categoryButtons').innerHTML=buttons;
-  $('categoryRibbon').innerHTML=categories.slice(0,6).map(c=>`<span>${e(c)}</span>`).join('');
+  const ribbonGroup=categories.map(c=>`<span>${e(c)}</span><span class="ribbon-star" aria-hidden="true">✦</span>`).join('');
+  const ribbon=`<div class="ribbon-group">${ribbonGroup}</div><div class="ribbon-group" aria-hidden="true">${ribbonGroup}</div>`;
+  if($('categoryRibbon').innerHTML!==ribbon)$('categoryRibbon').innerHTML=ribbon;
   let menus=filteredMenus(state.menus,state.kantin,{search:$('searchInput').value,category:state.category,kantinId:state.kantinId});
   if(state.promoOnly)menus=menus.filter(m=>menuVariants(m.id).some(v=>variantPromo(v.id)?.active));
   $('menuList').innerHTML=menus.length?menus.map(m=>menuCard(m)).join(''):'<div class="no-result">Belum ada menu yang sesuai. Coba kata kunci atau kategori lain.</div>';
@@ -286,7 +295,7 @@ async function saveForm(form,rpc,args,errorId,success){
 document.addEventListener('click',async event=>{
   const button=event.target.closest('[data-action]');if(!button||button.disabled)return;
   const {action,id,index,change,mode}=button.dataset;
-  if(state.checkoutBusy&&['quantity','remove','pick','checkout','close-dialog','rules','add-more','edit-selection'].includes(action))return;
+  if(state.checkoutBusy&&['quantity','remove','pick','preview-menu','checkout','close-dialog','rules','add-more','edit-selection'].includes(action))return;
   try{
     if(action==='password'){const visible=$('authPassword').type==='password';$('authPassword').type=visible?'text':'password';button.querySelector('.password-eye').toggleAttribute('hidden',visible);button.querySelector('.password-eye-off').toggleAttribute('hidden',!visible);button.setAttribute('aria-pressed',String(visible));button.setAttribute('aria-label',visible?'Sembunyikan kata sandi':'Tampilkan kata sandi');}
     else if(action==='register'||action==='login')setMode(action);
@@ -299,6 +308,8 @@ document.addEventListener('click',async event=>{
     else if(action==='reset-filters')resetFilters();
     else if(action==='promo-filter'){state.promoOnly=!state.promoOnly;closeDialogs();renderMenu();$('menu').scrollIntoView({behavior:'smooth'});}
     else if(action==='pick')pickMenu(id,mode);
+    else if(action==='preview-menu')openMenuDetail(id,mode);
+    else if(action==='ribbon-motion'){const paused=button.closest('.food-ribbon').classList.toggle('is-paused');button.setAttribute('aria-pressed',String(paused));button.setAttribute('aria-label',paused?'Lanjutkan gerakan kategori':'Jeda gerakan kategori');button.querySelector('.ribbon-pause').toggleAttribute('hidden',paused);button.querySelector('.ribbon-play').toggleAttribute('hidden',!paused);}
     else if(action==='edit-selection'){const item=state.cart[Number(index)],variant=state.variants.find(v=>v.id===item?.variant_id);if(item&&variant)openVariant(variant.menu_id,item.price_mode,Number(index));}
     else if(action==='add-more'){closeDialogs();$('menu').scrollIntoView({behavior:'smooth'});}
     else if(action==='close-dialog')button.closest('dialog')?.close();
