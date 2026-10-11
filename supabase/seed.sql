@@ -2,7 +2,7 @@
 -- Idempotent: reruns do not overwrite admin changes or real transactions.
 begin;
 insert into public.kantin (id,name,pickup_location,opens_at,closes_at,accepting_orders,is_demo) values
-('00000000-0000-4000-8000-000000000001','Kantin Demo','Detail lokasi belum diisi','06:30:00','17:00:00',false,true)
+('00000000-0000-4000-8000-000000000001','Kantin Contoh','Detail lokasi belum diisi','06:30:00','17:00:00',false,true)
 on conflict(id) do nothing;
 insert into public.menu (id,kantin_id,name,category,kind,active,is_verified,confirmation_note) values
 ('10000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000001','Mie Ayam Polos','Mie','food',false,false,'Perlu konfirmasi: foto sumber, harga, varian, dan kepemilikan kantin belum diverifikasi.'),

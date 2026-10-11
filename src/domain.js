@@ -19,7 +19,7 @@ export function promoAvailable(promo,variant,date=new Date()) {
 }
 export function variantProblem(menu,variant,kantin,{promo,mode='regular',date=new Date(),quantity=1}={}) {
   if(!menu||!variant||!kantin)return 'Menu tidak tersedia lagi.';
-  if(kantin.is_demo)return 'Kantin Demo belum menerima transaksi nyata.';
+  if(kantin.is_demo)return 'Kantin Contoh belum menerima transaksi nyata.';
   if(!menu.is_verified||!variant.price_verified||variant.price==null)return 'Perlu konfirmasi oleh admin.';
   if(!menu.active||!variant.active)return 'Menu sedang tidak tersedia.';
   if(!isOpen(kantin,date))return 'Kantin tutup atau sedang menjeda pesanan baru.';

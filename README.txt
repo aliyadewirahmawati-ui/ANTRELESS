@@ -5,17 +5,19 @@ Website makanan dan minuman untuk pelanggan umum dan kantin mana saja. Navy #102
 ## Perubahan
 
 - Hero baru dan teks umum tanpa batas institusi/lokasi.
-- 45 menu, 58 pilihan dari transkripsi pengguna. Satu Kantin Demo yang dapat diubah; database mendukung banyak kantin.
+- 45 menu, 58 pilihan dari transkripsi pengguna. Satu Kantin Contoh yang dapat diubah; database mendukung banyak kantin.
 - Empat foto belum tersedia pada lampiran implementasi. Menu awal nonaktif, harga belum terverifikasi, stok 0, tanpa promo otomatis. Daftar konfirmasi: MENU_PERLU_KONFIRMASI.md.
 - Prasmanan/seblak tidak menggunakan harga mulai Rp8.000 sebagai harga final. Enam menu ayam/soto belum memiliki harga; minuman kemasan menunggu merek/ukuran/harga.
 - Placeholder kategori untuk katalog; foto hero hanya ilustrasi.
 - Layanan dokumen dan slot wajib 10 menit dihapus dari alur aktif.
 - Mode daring menggunakan Supabase Auth, database bersama, Realtime dan polling; mode demo terpisah menggunakan data lokal.
 - Checkout menghasilkan satu pesanan per kantin dengan antrean/status/subtotal/perkiraan siap sendiri.
+- Logo unggahan terbaru tampil di beranda; halaman masuk tanpa logo, dengan sapaan “Welcome to Antreless!”. Label “demo” tidak ditampilkan pada antarmuka; keterangan penyimpanan lokal dan pembayaran simulasi tetap tersedia.
+- Tombol + membuka ringkasan pemesanan langsung untuk menu tanpa varian. Menu dengan pilihan meminta rasa/jenis dahulu, lalu “Lanjutkan pesanan” membuka ringkasan. “Tambahkan yang lain” mempertahankan pilihan dan kembali ke katalog. Jumlah serta catatan dapat diubah dalam ringkasan tanpa menambahkan item yang sama dua kali.
 
 Tanpa konfigurasi Supabase: mode demonstrasi lokal aktif. Gunakan data contoh; akun, sesi, stok, keranjang, nomor antrean dan pesanan disimpan pada browser yang sama. Ini bukan transaksi yang diteruskan ke penjual, otorisasi server, atau pembayaran uang. Harga yang kosong memakai contoh Rp10.000 minuman / Rp15.000 makanan hanya pada mode demo; seed produksi tetap belum terverifikasi.
 
-Panduan akun demo tersedia pada halaman login: pembeli pembeli@antreless.demo / demo12345, admin aliyadewirahmawati@gmail.com / admin. Email admin sudah dicadangkan. Pendaftaran lokal selalu pembeli. Logout untuk berganti peran dan memeriksa status terbaru. Password demo di-hash dengan salt di penyimpanan lokal untuk menghindari teks polos, tetapi data dan role lokal tetap dapat diubah pemilik browser; jangan pakai data pribadi atau password utama. Chrome/Edge modern diperlukan untuk Web Locks dan konteks HTTPS/localhost. Demo mematuhi jam WIB; admin dapat menyesuaikan jam kantin untuk presentasi.
+Akun contoh untuk pengujian lokal: pembeli pembeli@antreless.demo / demo12345, admin aliyadewirahmawati@gmail.com / admin. Panduan kredensial tidak ditampilkan pada halaman login. Email admin sudah dicadangkan. Pendaftaran lokal selalu pembeli. Logout untuk berganti peran dan memeriksa status terbaru. Password demo di-hash dengan salt di penyimpanan lokal untuk menghindari teks polos, tetapi data dan role lokal tetap dapat diubah pemilik browser; jangan pakai data pribadi atau password utama. Chrome/Edge modern diperlukan untuk Web Locks dan konteks HTTPS/localhost. Demo mematuhi jam WIB; admin dapat menyesuaikan jam kantin untuk presentasi.
 
 Catatan pembeli maksimal 300 karakter per pilihan tampil pada tas, konfirmasi, riwayat dan dashboard. Pilihan pembayaran: bayar saat ambil (belum lunas) atau simulasi di website (demo_confirmed, bukan paid). Ikon informasi memuat aturan pengambilan, keluhan, refund yang sah, dan larangan pelanggaran; tidak ada nominal denda atau pemblokiran otomatis. Persetujuan dan versinya tersimpan pada pesanan. Gerakan lembut menghormati prefers-reduced-motion.
 
@@ -69,7 +71,7 @@ Halaman masuk satu untuk pembeli/admin. “Lupa kata sandi” menggunakan Supaba
 
 ## Mengaktifkan menu nyata
 
-1. Ubah nama/lokasi/jam kantin dan matikan penanda Kantin Demo. Jam awal 06.30–17.00 WIB; buka harus sebelum tutup pada hari yang sama.
+1. Ubah nama/lokasi/jam kantin dan matikan penanda “Data contoh / Belum menerima transaksi”. Jam awal 06.30–17.00 WIB; buka harus sebelum tutup pada hari yang sama.
 2. Verifikasi nama/kepemilikan menu, lalu centang verifikasi pada editor menu.
 3. Isi pilihan rasa/jenis, harga final, stok nyata, konfirmasi harga, dan aktifkan pilihan.
 4. Prasmanan/seblak: nonaktifkan pilihan “Pilihan belum dikonfigurasi”; tambahkan pilihan konkret dengan harga final.

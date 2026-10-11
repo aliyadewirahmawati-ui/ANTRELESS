@@ -7,20 +7,29 @@ export const demoAccounts={admin:{email:'aliyadewirahmawati@gmail.com',password:
 const uuid=()=>crypto.randomUUID(),copy=value=>structuredClone(value);
 async function digest(password,salt){const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(salt+':'+password));return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');}
 async function account(email,password,name,role){const salt=uuid();return {id:uuid(),email,display_name:name,role,salt,password_hash:await digest(password,salt)};}
-const read=()=>{const data=JSON.parse(localStorage.getItem(KEY));if(!data)throw Error('Data demo belum siap. Muat ulang halaman.');return data;};
+const read=()=>{const data=JSON.parse(localStorage.getItem(KEY));if(!data)throw Error('Data lokal belum siap. Muat ulang halaman.');return data;};
 const write=data=>localStorage.setItem(KEY,JSON.stringify(data));
 let ready;
 async function initialize(){
-  if(localStorage.getItem(KEY))return;
-  const profiles=await Promise.all([account(demoAccounts.admin.email,demoAccounts.admin.password,'Admin Antreless','admin'),account(demoAccounts.buyer.email,demoAccounts.buyer.password,'Pembeli Demo','buyer')]);
+  if(localStorage.getItem(KEY)){
+    const data=read();let changed=false;
+    for(const menu of data.menu||[])if(menu.confirmation_note==='Data contoh untuk demonstrasi; belum diverifikasi oleh mitra.'){menu.confirmation_note='Data contoh untuk simulasi; belum diverifikasi oleh mitra.';changed=true;}
+    for(const profile of data.profiles||[])if(profile.email===demoAccounts.buyer.email&&profile.display_name==='Pembeli Demo'){profile.display_name='Pembeli Contoh';changed=true;}
+    for(const order of data.orders||[]){
+      if(order.buyer_name==='Pembeli Demo'){order.buyer_name='Pembeli Contoh';changed=true;}
+      for(const history of order.order_status_history||[])if(history.note==='Pesanan demo dibuat'){history.note='Pesanan lokal dibuat';changed=true;}
+    }
+    if(changed)write(data);return;
+  }
+  const profiles=await Promise.all([account(demoAccounts.admin.email,demoAccounts.admin.password,'Admin Antreless','admin'),account(demoAccounts.buyer.email,demoAccounts.buyer.password,'Pembeli Contoh','buyer')]);
   const kantin=copy(seedKantin).map(k=>({...k,name:'Kantin Contoh',pickup_location:'Meja pengambilan kantin (contoh)',accepting_orders:true,is_demo:false}));
-  const menu=copy(seedMenus).map(m=>({...m,active:true,is_verified:true,confirmation_note:'Data contoh untuk demonstrasi; belum diverifikasi oleh mitra.'}));
+  const menu=copy(seedMenus).map(m=>({...m,active:true,is_verified:true,confirmation_note:'Data contoh untuk simulasi; belum diverifikasi oleh mitra.'}));
   const menu_variants=copy(seedVariants).map(v=>({...v,name:v.price===null?'Standar (contoh)':v.name,price:v.price??(menu.find(m=>m.id===v.menu_id).kind==='drink'?10000:15000),stock:20,active:true,price_verified:true}));
   const promos=menu_variants.filter(v=>[12000,15000,10000].includes(v.price)).slice(0,3).map(v=>({id:uuid(),variant_id:v.id,price:Math.round(v.price*.8/500)*500,daily_quota:5,remaining_stock:5,stock_date:jakartaDay(),active:true,starts_at:'15:00:00',ends_at:'17:00:00'}));
   // A second tab may have completed initialization while hashes were generated.
   if(!localStorage.getItem(KEY))write({profiles,kantin,menu,menu_variants,promos,orders:[],kantin_admins:[{user_id:profiles[0].id,kantin_id:kantin[0].id}],requests:{},counters:{}});
 }
-const locked=callback=>navigator.locks?navigator.locks.request(KEY,callback):Promise.reject(Error('Browser ini belum mendukung penguncian data demo. Gunakan Chrome atau Edge terbaru.'));
+const locked=callback=>navigator.locks?navigator.locks.request(KEY,callback):Promise.reject(Error('Browser ini belum mendukung penguncian data lokal. Gunakan Chrome atau Edge terbaru.'));
 export function createDemoClient(){
   ready=locked(initialize);
   const listeners=new Set(),channels=new Set();
@@ -53,7 +62,7 @@ export function createDemoClient(){
       physical.forEach((quantity,id)=>{if(quantity>data.menu_variants.find(v=>v.id===id).stock)throw Error('Stok tidak mencukupi.');});
       promoQty.forEach((quantity,id)=>{const pr=data.promos.find(pr=>pr.variant_id===id);if(quantity>(pr.stock_date===jakartaDay()?pr.remaining_stock:pr.daily_quota))throw Error('Stok promo habis.');});
       physical.forEach((quantity,id)=>{data.menu_variants.find(v=>v.id===id).stock-=quantity;});promoQty.forEach((quantity,id)=>{const pr=data.promos.find(pr=>pr.variant_id===id);pr.remaining_stock=(pr.stock_date===jakartaDay()?pr.remaining_stock:pr.daily_quota)-quantity;pr.stock_date=jakartaDay();});
-      const orders=[...grouped.values()].map(({kantin:k,items})=>{const counter=k.id+':'+jakartaDay();data.counters[counter]=(data.counters[counter]||0)+1;const order={id:uuid(),kantin_id:k.id,kantin_name:k.name,pickup_location:k.pickup_location,buyer_id:user.id,buyer_name:user.display_name,queue_day:jakartaDay(),queue_number:data.counters[counter],created_at:now,updated_at:now,status:'waiting',total:[...items.values()].reduce((n,i)=>n+i.unit_price*i.quantity,0),admin_note:'',estimated_ready_at:null,cancellation_reason:'',payment_method:p.p_options.payment_method,payment_status:p.p_options.payment_method==='demo'?'demo_confirmed':'unpaid',terms_version:p.p_options.terms_version,terms_accepted_at:now,order_items:[...items.values()],order_status_history:[{status:'waiting',changed_at:now,note:'Pesanan demo dibuat'}]};data.orders.push(order);return order;});
+      const orders=[...grouped.values()].map(({kantin:k,items})=>{const counter=k.id+':'+jakartaDay();data.counters[counter]=(data.counters[counter]||0)+1;const order={id:uuid(),kantin_id:k.id,kantin_name:k.name,pickup_location:k.pickup_location,buyer_id:user.id,buyer_name:user.display_name,queue_day:jakartaDay(),queue_number:data.counters[counter],created_at:now,updated_at:now,status:'waiting',total:[...items.values()].reduce((n,i)=>n+i.unit_price*i.quantity,0),admin_note:'',estimated_ready_at:null,cancellation_reason:'',payment_method:p.p_options.payment_method,payment_status:p.p_options.payment_method==='demo'?'demo_confirmed':'unpaid',terms_version:p.p_options.terms_version,terms_accepted_at:now,order_items:[...items.values()],order_status_history:[{status:'waiting',changed_at:now,note:'Pesanan lokal dibuat'}]};data.orders.push(order);return order;});
       data.requests[p.p_key]={user:user.id,signature,orders:orders.map(o=>o.id)};return orders;
     }
     if(name==='update_order'){
@@ -76,7 +85,7 @@ export function createDemoClient(){
     if(name==='save_promo'){
       const v=data.menu_variants.find(v=>v.id===p.p_variant),m=data.menu.find(m=>m.id===v?.menu_id);if(!m)throw Error('Pilihan tidak ditemukan.');requireAdmin(data,m.kantin_id);if(!Number.isInteger(p.p_price)||p.p_price<1||p.p_price>=v.price||!Number.isInteger(p.p_quota)||!Number.isInteger(p.p_remaining)||p.p_remaining<0||p.p_remaining>p.p_quota||p.p_starts<'15:00'||p.p_ends>'17:00'||p.p_starts>=p.p_ends||p.p_active&&(!m.active||!v.active||v.stock<1||p.p_remaining<1))throw Error('Periksa harga, stok promo, dan waktu 15.00–17.00.');let pr=data.promos.find(pr=>pr.variant_id===v.id);const row={id:pr?.id||uuid(),variant_id:v.id,price:p.p_price,daily_quota:p.p_quota,remaining_stock:p.p_remaining,stock_date:jakartaDay(),starts_at:p.p_starts,ends_at:p.p_ends,active:p.p_active};if(pr)Object.assign(pr,row);else data.promos.push(row);return row;
     }
-    throw Error('Fitur demo tidak dikenal.');
+    throw Error('Fitur tidak dikenal.');
   }
   return {
     auth:{
@@ -85,8 +94,8 @@ export function createDemoClient(){
       signInWithPassword:({email,password})=>result(async()=>{const user=read().profiles.find(p=>p.email===email.trim().toLowerCase());if(!user||await digest(password,user.salt)!==user.password_hash)throw Error('Invalid login credentials');localStorage.setItem(SESSION,user.id);return {session:session(),user:session().user};}),
       signUp:({email,password,options})=>result(()=>locked(async()=>{const normalized=email.trim().toLowerCase(),data=read();if(data.profiles.some(p=>p.email===normalized))throw Error('Email ini sudah digunakan.');if(password.length<8||!options?.data?.display_name?.trim())throw Error('Isi nama dan kata sandi minimal 8 karakter.');const user=await account(normalized,password,options.data.display_name.trim(),'buyer');data.profiles.push(user);write(data);localStorage.setItem(SESSION,user.id);return {session:session(),user:session().user};})),
       signOut:()=>result(()=>{localStorage.removeItem(SESSION);return {}; }),
-      resetPasswordForEmail:()=>result(()=>{throw Error('Mode demo tidak mengirim email pemulihan. Gunakan akun contoh atau buat akun lokal baru.');}),
-      updateUser:()=>result(()=>{throw Error('Pemulihan kata sandi belum tersedia dalam mode demo.');})
+      resetPasswordForEmail:()=>result(()=>{throw Error('Penyimpanan lokal tidak mengirim email pemulihan. Gunakan akun contoh atau buat akun lokal baru.');}),
+      updateUser:()=>result(()=>{throw Error('Pemulihan kata sandi belum tersedia dalam mode lokal.');})
     },
     from(table){const filters=[];let single=false,sort=null;const query={select(){return this;},eq(k,v){filters.push([k,v]);return this;},single(){single=true;return this;},order(k,options){sort=[k,options?.ascending!==false];return this;},then(resolve,reject){return result(()=>{const data=read(),user=actor(data);let rows=copy(data[table]||[]);if(table==='profiles')rows=rows.filter(p=>p.id===user?.id).map(({salt,password_hash,...p})=>p);if(table==='kantin_admins')rows=rows.filter(m=>m.user_id===user?.id&&user?.role==='admin');if(table==='orders')rows=rows.filter(o=>user?.role==='admin'?data.kantin_admins.some(m=>m.user_id===user.id&&m.kantin_id===o.kantin_id):o.buyer_id===user?.id);rows=rows.filter(r=>filters.every(([k,v])=>r[k]===v));if(sort)rows.sort((a,b)=>String(a[sort[0]]).localeCompare(String(b[sort[0]]))*(sort[1]?1:-1));return single?rows[0]||null:rows;}).then(resolve,reject);}};return query;},
     rpc:(name,p)=>result(()=>locked(()=>{const data=read(),value=mutation(name,p,data);write(data);notify();return copy(value);})),

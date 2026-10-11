@@ -1,6 +1,6 @@
 // Transcribed reference data, NOT photo-verified or ready for real transactions.
 const id=(group,n)=>`${group}0000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
-export const seedKantin=[{id:id(0,1),name:'Kantin Demo',pickup_location:'Detail lokasi belum diisi',opens_at:'06:30:00',closes_at:'17:00:00',accepting_orders:false,is_demo:true}];
+export const seedKantin=[{id:id(0,1),name:'Kantin Contoh',pickup_location:'Detail lokasi belum diisi',opens_at:'06:30:00',closes_at:'17:00:00',accepting_orders:false,is_demo:true}];
 const rows=[
  ['Mie Ayam Polos','Mie',12000],['Mie Ayam Bakso','Mie',15000],['Indomie Rebus','Mie',6000],['Indomie Goreng','Mie',6000],['Indomie Rebus + Telur','Mie',10000],['Indomie Goreng + Telur','Mie',10000],['Pop Mie','Mie',8000],
  ['Nasi Goreng + Telur','Nasi Goreng',12000],['Nasi Goreng Cikur + Telur','Nasi Goreng',12000],['Nasi Goreng Sambal Matah + Telur','Nasi Goreng',12000],['Nasi Goreng Sosis + Telur','Nasi Goreng',15000],['Nasi Goreng Ayam + Telur','Nasi Goreng',15000],['Nasi Goreng Saus Keju + Telur','Nasi Goreng',13000],['Nasi Goreng Spesial','Nasi Goreng',18000],['Nasi Goreng Korea','Nasi Goreng',13000],
