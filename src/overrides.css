@@ -2,13 +2,7 @@
 /* Frame the supplied transparent logo without changing its artwork. */
 .brand{flex-shrink:0}
 .brand-logo{display:block;width:180px;height:auto;aspect-ratio:1651/480;flex-shrink:0}
-.login-card{background:linear-gradient(145deg,var(--login-card-start),var(--login-card-end));color:var(--primary)}
-.login-card h1,.login-card .login-tagline,.login-card .login-field label,.login-card .forgot-link,.login-card .login-switch button{color:var(--primary)}
-.login-card .login-intro,.login-card .login-switch{color:var(--muted-text)}
-.login-card .demo-login{border-color:var(--primary-hover);background:transparent;color:var(--primary)}
-.login-card .demo-login:hover{background:var(--soft-accent)}
-.login-card .setup-notice{border-color:var(--border);background:var(--secondary-glow);color:var(--primary-hover)}
-.login-card .setup-notice strong,.login-card .setup-notice summary{color:var(--primary)}
+.login-wordmark-ink{flood-color:var(--soft-accent)}
 .login-brand{width:180px;max-width:100%;padding:8px 10px;border-radius:0;background:transparent}
 .login-brand .brand-logo{width:100%}
 @media(max-width:650px){.login-brand{width:160px}}
