@@ -28,7 +28,20 @@ async function connect(url,page=true){const ws=new WebSocket(url);sockets.push(w
  assert.deepEqual(await preview.run("[authPassword.type,authPassword.value,passwordToggle.getAttribute('aria-pressed'),passwordToggle.getAttribute('aria-label'),getComputedStyle(passwordToggle.querySelector('.password-eye')).display,getComputedStyle(passwordToggle.querySelector('.password-eye-off')).display]"),['password','qa-password','false','Tampilkan kata sandi','block','none']);
  await preview.run("authPassword.value=''");
  for(const width of [320,390,1440]){await preview.send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<650});assert.equal(await preview.run('document.documentElement.scrollWidth<=innerWidth'),true,'login width '+width);await preview.shot('login-'+width+'.png');}
+ for(const width of [390,1440]){
+  await preview.send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<650});
+  await preview.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});await preview.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+  for(const id of ['authEmail','authPassword']){
+   await preview.run(`document.getElementById('${id}').focus()`);
+   assert.equal(await preview.run(`document.getElementById('${id}').matches(':focus-visible')`),true);
+   assert.deepEqual(await preview.run(`const input=document.getElementById('${id}'),wrapper=input.closest('.login-input-wrap');[getComputedStyle(input).outlineStyle,wrapper.matches(':focus-within'),getComputedStyle(wrapper).boxShadow!=='none']`),['none',true,true]);
+   if(id==='authEmail')await preview.shot('login-focus-'+width+'.png');
+  }
+ }
+ await preview.run('authPassword.blur()');
  console.log('Login eye icons, password visibility, accessible labels, and 320–1440px layout: PASS');
+ console.log('Login fields keep one rounded focus indicator without a rectangular inner outline: PASS');
+ if(process.env.ANTRELESS_LOGIN_ONLY==='1')return;
  await preview.run("document.querySelector('[data-action=browse]').click()");assert.equal(await preview.run('welcomeDialog.open'),true);await preview.run("document.querySelector('[data-action=welcome-done]').click()");await wait(700);assert.equal(await preview.run('menuCount.textContent'),'45');assert.equal(await preview.run('partnerCount.textContent'),'1');assert.equal(await preview.run("document.querySelector('.hero h1').innerText.replace(/\\s+/g,' ').trim()"),'Hemat Waktu. Tanpa drama antre.');assert.equal(await preview.run("document.querySelectorAll('#menuList .add:not(:disabled)').length"),45);
  for(const width of [320,390,650,850,1100,1440]){await preview.send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:width<650});assert.equal(await preview.run('document.documentElement.scrollWidth<=innerWidth'),true,'preview width '+width);}
  await preview.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await preview.run("scrollTo({top:0,behavior:'instant'})");await preview.shot('home-desktop.png');const brandBox=await preview.run("const b=document.querySelector('.site-header .brand').getBoundingClientRect();({x:b.x,y:b.y,width:b.width,height:b.height})");fs.writeFileSync('test-artifacts/brand.png',Buffer.from((await preview.send('Page.captureScreenshot',{format:'png',clip:{...brandBox,scale:3}})).data,'base64'));assert.equal(await preview.run("/demo/i.test(document.body.innerText)"),false);await preview.send('Emulation.setDeviceMetricsOverride',{width:390,height:1000,deviceScaleFactor:1,mobile:true});await preview.run("menu.scrollIntoView({behavior:'instant'})");await preview.shot('catalog-mobile.png');

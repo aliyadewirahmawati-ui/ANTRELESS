@@ -88,6 +88,8 @@ button:disabled{cursor:not-allowed}
 .check-label input{width:18px!important;height:18px;min-height:18px!important;flex:0 0 18px;padding:0!important;accent-color:var(--accent-hover)}
 textarea{font:inherit;color:var(--text);background:var(--background);border:1px solid var(--border);border-radius:7px;width:100%;padding:11px;min-height:85px;resize:vertical}
 input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--focus-ring);outline-offset:3px}
+/* The rounded wrapper supplies the login field's visible focus indicator. */
+.login-input-wrap input:focus-visible{outline:none;outline-offset:0}
 .variant-list{margin-block:15px}
 .variant-list>div{border-top:1px solid var(--border);padding:12px 0;display:grid;gap:6px;font-size:12px;line-height:1.6}
 .variant-list small{color:var(--muted-text)}
